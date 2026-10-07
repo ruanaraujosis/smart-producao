@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-brand-header: var(--brand-header);
+  --color-brand-header-foreground: var(--brand-header-foreground);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-deep: var(--brand-deep);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-channel-shopee: var(--channel-shopee);
+  --color-channel-magalu: var(--channel-magalu);
+  --color-channel-tiktok: var(--channel-tiktok);
+  --color-channel-whatsapp: var(--channel-whatsapp);
+  --color-channel-balcao: var(--channel-balcao);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Paleta da Smart Gráfica — a mesma do sistema atual e da identidade no Instagram.
+ * Não trocar o primário por outra cor sem alinhar com a direção.
+ */
+:root {
+  --background: #f8f7fa;
+  --foreground: #251a2b;
+  --card: #ffffff;
+  --card-foreground: #251a2b;
+  --popover: #ffffff;
+  --popover-foreground: #251a2b;
+  --primary: #8b1c80;
+  --primary-foreground: #ffffff;
+  --secondary: #f5eaf4;
+  --secondary-foreground: #64205d;
+  --muted: #f3f0f4;
+  --muted-foreground: #6e6270;
+  --accent: #f9e6f4;
+  --accent-foreground: #71246a;
+  --destructive: #b62639;
+  --border: #e9e2ea;
+  --input: #ded2df;
+  --ring: #b6379b;
+  --radius: 0.8rem;
+
+  /* Marca */
+  --brand-header: #391036;
+  --brand-header-foreground: #ffffff;
+  --brand-pink: #ed47a7;
+  --brand-deep: #4a1347;
+
+  /* Estados — fundos tingidos no estilo dos cards de KPI */
+  --success: #15803d;
+  --success-soft: #e8f6ee;
+  --warning: #b45309;
+  --warning-soft: #fdf3e2;
+  --info: #6d28d9;
+  --info-soft: #f1ebfd;
+
+  /* Canais de venda */
+  --channel-shopee: #d9411f;
+  --channel-magalu: #0a6fd8;
+  --channel-tiktok: #d4124f;
+  --channel-whatsapp: #15803d;
+  --channel-balcao: #8b1c80;
+
+  --chart-1: #8b1c80;
+  --chart-2: #ed47a7;
+  --chart-3: #b6379b;
+  --chart-4: #4a1347;
+  --chart-5: #f2a9d3;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #251a2b;
+  --sidebar-primary: #8b1c80;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f9e6f4;
+  --sidebar-accent-foreground: #71246a;
+  --sidebar-border: #e9e2ea;
+  --sidebar-ring: #b6379b;
+}
+
+/* Variante escura derivada da mesma paleta — usada no modo TV (/tv). */
+.dark {
+  --background: #160914;
+  --foreground: #f7eef6;
+  --card: #241022;
+  --card-foreground: #f7eef6;
+  --popover: #241022;
+  --popover-foreground: #f7eef6;
+  --primary: #e070d2;
+  --primary-foreground: #1b0a19;
+  --secondary: #391036;
+  --secondary-foreground: #f5d6ef;
+  --muted: #2e152b;
+  --muted-foreground: #c2afc0;
+  --accent: #46163f;
+  --accent-foreground: #fbd7f0;
+  --destructive: #f2667a;
+  --border: #3d2039;
+  --input: #4a2846;
+  --ring: #ed47a7;
+
+  --brand-header: #0f050e;
+  --success: #4ade80;
+  --success-soft: #12301f;
+  --warning: #fbbf24;
+  --warning-soft: #3a2a0c;
+  --info: #c4b5fd;
+  --info-soft: #261a45;
+
+  --channel-shopee: #ff7a5c;
+  --channel-magalu: #5aa9ff;
+  --channel-tiktok: #ff5c8e;
+  --channel-whatsapp: #4ade80;
+  --channel-balcao: #e070d2;
+
+  --chart-1: #e070d2;
+  --chart-2: #ed47a7;
+  --chart-3: #f2a9d3;
+  --chart-4: #9b4f93;
+  --chart-5: #f7d3ea;
+
+  --sidebar: #1d0c1b;
+  --sidebar-foreground: #f7eef6;
+  --sidebar-primary: #e070d2;
+  --sidebar-primary-foreground: #1b0a19;
+  --sidebar-accent: #46163f;
+  --sidebar-accent-foreground: #fbd7f0;
+  --sidebar-border: #3d2039;
+  --sidebar-ring: #ed47a7;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* Respeita a barra de gestos do iPhone/Android na navegação inferior */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
