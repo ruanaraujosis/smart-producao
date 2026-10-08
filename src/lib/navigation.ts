@@ -57,7 +57,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: Boxes,
     scope: "org",
     permission: "estoque.ver",
-    comingSoon: true,
   },
   {
     href: "/expedicao",
@@ -72,8 +71,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: "Cadastros",
     icon: Contact,
     scope: "org",
-    permission: "cadastros.ver",
-    comingSoon: true,
+    permission: ["cadastros.ver", "pedidos.ver", "estoque.ver", "financeiro.ver"],
   },
   {
     href: "/financeiro",

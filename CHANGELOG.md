@@ -4,6 +4,24 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+## [0.2.0] - 2026-10-08
+
+### Fase 2 — Cadastros + Estoque
+
+#### Adicionado
+
+- **Cadastros**: clientes (CPF/CNPJ validados, endereço pelo CEP, canal de origem), fornecedores, categorias, insumos e formas de pagamento (taxa e prazo).
+- **Produtos** com variações (SKU, tamanho, espessura, cor, acabamento, peso e medidas), fotos em armazenamento privado e dados fiscais (NCM, CEST, CFOP).
+- Produção **sob encomenda** ou **pronta-entrega**, por produto.
+- **Preço por canal**: preço base + ajuste % por canal (balcão, Shopee, Magalu, TikTok Shop, WhatsApp), com valor manual opcional por variação.
+- **Ficha técnica** por variação (insumo, quantidade e % de perda), com custo e margem calculados e cópia entre variações.
+- **Estoque**: entradas, saídas, ajustes, perdas, reservas e liberações, com histórico que não pode ser apagado; **custo médio ponderado** atualizado a cada entrada.
+- **Disponibilidade** por variação (peças prontas + quanto dá para produzir pela ficha técnica) e **baixa pela ficha técnica**.
+- **Sugestão de compra** para insumos abaixo do mínimo, agrupada por fornecedor.
+- Acesso aos cadastros por permissão (quem vê pedidos, estoque ou financeiro enxerga o que precisa).
+
+## [0.1.0] - 2026-10-08
+
 ### Fase 1 — Fundação
 
 #### Adicionado
