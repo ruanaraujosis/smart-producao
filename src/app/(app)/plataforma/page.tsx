@@ -6,7 +6,11 @@ import { requirePlatformAdmin } from "@/lib/auth/dal";
 import { formatDate, initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "cn";
-import { CreateOrganizationDialog, OrganizationActiveSwitch } from "./organization-dialogs";
+import {
+  CreateOrganizationDialog,
+  EditOrganizationDialog,
+  OrganizationActiveSwitch,
+} from "./organization-dialogs";
 import { Roadmap } from "./roadmap";
 
 export const metadata = { title: "Plataforma" };
@@ -47,7 +51,9 @@ async function Organizations() {
   const [{ data: orgs }, { count: people }] = await Promise.all([
     supabase
       .from("organizations")
-      .select("id, slug, name, document, active, created_at, organization_members(count)")
+      .select(
+        "id, slug, name, legal_name, document, active, created_at, organization_members(count)",
+      )
       .order("active", { ascending: false })
       .order("name"),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -103,6 +109,7 @@ async function Organizations() {
                   {formatDate(org.created_at)}
                 </p>
               </div>
+              <EditOrganizationDialog organization={org} />
               <div className="flex flex-col items-end gap-1">
                 <OrganizationActiveSwitch id={org.id} name={org.name} active={org.active} />
                 <span className="text-[0.7rem] text-muted-foreground">
