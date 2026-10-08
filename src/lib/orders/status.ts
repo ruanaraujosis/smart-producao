@@ -69,6 +69,11 @@ export function isOpen(status: OrderStatus) {
 }
 
 const index = (s: OrderStatus) => ORDER_STATUSES.indexOf(s);
+
+/** O status vem antes de outro na sequência (mesma comparação do banco). */
+export function isBefore(a: OrderStatus, b: OrderStatus) {
+  return index(a) < index(b);
+}
 const between = (s: OrderStatus, a: OrderStatus, b: OrderStatus) =>
   index(s) >= index(a) && index(s) <= index(b);
 

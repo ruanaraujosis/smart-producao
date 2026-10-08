@@ -120,16 +120,20 @@ export function Pagination({
   page,
   total,
   q,
+  params: extra,
 }: {
   basePath: string;
   page: number;
   total: number;
   q?: string;
+  /** Outros filtros da URL a preservar. */
+  params?: Record<string, string | undefined>;
 }) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (pages <= 1) return null;
   const href = (p: number) => {
     const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(extra ?? {})) if (v) params.set(k, v);
     if (q) params.set("q", q);
     if (p > 1) params.set("pagina", String(p));
     const qs = params.toString();

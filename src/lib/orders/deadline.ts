@@ -19,6 +19,13 @@ function format(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
+/** Soma (ou subtrai) dias corridos. */
+export function addDays(fromIso: string, days: number) {
+  const d = parse(fromIso);
+  d.setUTCDate(d.getUTCDate() + Math.trunc(days));
+  return format(d);
+}
+
 /** Soma dias úteis (seg–sex). Feriados ainda não entram na conta. */
 export function addBusinessDays(fromIso: string, days: number) {
   const d = parse(fromIso);

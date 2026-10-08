@@ -1,11 +1,31 @@
 import { cn } from "cn";
 
 export const CHANNELS = {
-  shopee: { label: "Shopee", className: "text-channel-shopee bg-channel-shopee/10" },
-  magalu: { label: "Magalu", className: "text-channel-magalu bg-channel-magalu/10" },
-  tiktok: { label: "TikTok Shop", className: "text-channel-tiktok bg-channel-tiktok/10" },
-  whatsapp: { label: "WhatsApp", className: "text-channel-whatsapp bg-channel-whatsapp/10" },
-  balcao: { label: "Balcão", className: "text-channel-balcao bg-channel-balcao/10" },
+  shopee: {
+    label: "Shopee",
+    className: "text-channel-shopee bg-channel-shopee/10",
+    dot: "bg-channel-shopee",
+  },
+  magalu: {
+    label: "Magalu",
+    className: "text-channel-magalu bg-channel-magalu/10",
+    dot: "bg-channel-magalu",
+  },
+  tiktok: {
+    label: "TikTok Shop",
+    className: "text-channel-tiktok bg-channel-tiktok/10",
+    dot: "bg-channel-tiktok",
+  },
+  whatsapp: {
+    label: "WhatsApp",
+    className: "text-channel-whatsapp bg-channel-whatsapp/10",
+    dot: "bg-channel-whatsapp",
+  },
+  balcao: {
+    label: "Balcão",
+    className: "text-channel-balcao bg-channel-balcao/10",
+    dot: "bg-channel-balcao",
+  },
 } as const;
 
 export type Channel = keyof typeof CHANNELS;
