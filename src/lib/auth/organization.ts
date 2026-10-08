@@ -40,10 +40,10 @@ export function resolveActiveMembership(
   return memberships.length === 1 ? memberships[0] : null;
 }
 
-/** Precisa de MFA quem é SuperAdmin ou tem, em alguma gráfica, perfil admin/sensível. */
+/** Precisa de MFA quem é SuperAdmin ou tem, em alguma gráfica, perfil que exige MFA. */
 export function requiresMfa(input: {
   isPlatformAdmin: boolean;
-  roles: readonly { isAdmin: boolean; permissions: readonly string[] }[];
+  roles: readonly { isAdmin: boolean; requireMfa: boolean }[];
 }) {
   return input.isPlatformAdmin || input.roles.some(roleRequiresMfa);
 }

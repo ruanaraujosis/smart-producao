@@ -1309,6 +1309,7 @@ export type Database = {
           description: string | null;
           permissions: string[];
           is_admin: boolean;
+          require_mfa: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -1319,6 +1320,7 @@ export type Database = {
           description?: string | null;
           permissions?: string[];
           is_admin?: boolean;
+          require_mfa?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -1329,6 +1331,7 @@ export type Database = {
           description?: string | null;
           permissions?: string[];
           is_admin?: boolean;
+          require_mfa?: boolean;
           created_at?: string;
           updated_at?: string;
         };

@@ -19,6 +19,7 @@ const roleSchema = z.object({
     .max(200, "Descrição muito longa.")
     .transform((v) => (v === "" ? null : v)),
   permissions: z.array(z.string().refine(isPermission, "Permissão desconhecida.")),
+  requireMfa: z.boolean(),
 });
 
 export type RoleInput = z.input<typeof roleSchema>;
@@ -45,6 +46,7 @@ export async function saveRole(input: RoleInput): Promise<ActionResult> {
     name: parsed.data.name,
     description: parsed.data.description,
     permissions,
+    require_mfa: parsed.data.requireMfa,
   };
   const { error } = parsed.data.id
     ? await supabase

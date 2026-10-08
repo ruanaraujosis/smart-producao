@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil, Plus, ShieldAlert, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, ShieldAlert, ShieldCheck, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ACTION_LABELS,
   PERMISSION_MODULES,
   expandPermissions,
-  roleRequiresMfa,
+  hasSensitivePermission,
   type Permission,
 } from "@/lib/auth/permissions";
 import { deleteRole, saveRole } from "./actions";
@@ -32,6 +33,7 @@ export type RoleView = {
   name: string;
   description: string | null;
   permissions: Permission[];
+  requireMfa: boolean;
 };
 
 /** Matriz módulo × (Ver, Gerenciar). "Gerenciar" marca "Ver"; desmarcar "Ver" desmarca "Gerenciar". */
@@ -125,20 +127,30 @@ export function RoleDialog({
   const [name, setName] = useState(role?.name ?? "");
   const [description, setDescription] = useState(role?.description ?? "");
   const [permissions, setPermissions] = useState<Permission[]>(role?.permissions ?? []);
+  const [requireMfa, setRequireMfa] = useState(role?.requireMfa ?? false);
+  // Enquanto a pessoa não mexer na chave, ela acompanha as permissões sensíveis.
+  const [mfaTouched, setMfaTouched] = useState(Boolean(role));
   const [pending, startTransition] = useTransition();
-  const needsMfa = roleRequiresMfa({ isAdmin: false, permissions });
+  const sensitive = hasSensitivePermission(permissions);
   const prefix = role ? `role-${role.id}` : "role-new";
 
   const reset = () => {
     setName(role?.name ?? "");
     setDescription(role?.description ?? "");
     setPermissions(role?.permissions ?? []);
+    setRequireMfa(role?.requireMfa ?? false);
+    setMfaTouched(Boolean(role));
+  };
+
+  const changePermissions = (next: Permission[]) => {
+    setPermissions(next);
+    if (!mfaTouched) setRequireMfa(hasSensitivePermission(next));
   };
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     startTransition(async () => {
-      const result = await saveRole({ id: role?.id, name, description, permissions });
+      const result = await saveRole({ id: role?.id, name, description, permissions, requireMfa });
       if (result.ok) {
         toast.success(result.message);
         setOpen(false);
@@ -199,12 +211,37 @@ export function RoleDialog({
               rows={2}
             />
           </div>
-          <PermissionMatrix value={permissions} onChange={setPermissions} grantable={grantable} />
-          {needsMfa && (
+          <PermissionMatrix
+            value={permissions}
+            onChange={changePermissions}
+            grantable={grantable}
+          />
+          <label
+            htmlFor={`${prefix}-mfa`}
+            className="flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2"
+          >
+            <span className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+              <span className="flex flex-col">
+                <span className="text-sm font-medium">Exigir verificação em duas etapas (MFA)</span>
+                <span className="text-xs text-muted-foreground">
+                  Quem usar este perfil confirma o login com o app autenticador.
+                </span>
+              </span>
+            </span>
+            <Switch
+              id={`${prefix}-mfa`}
+              checked={requireMfa}
+              onCheckedChange={(checked) => {
+                setRequireMfa(checked);
+                setMfaTouched(true);
+              }}
+            />
+          </label>
+          {sensitive && !requireMfa && (
             <p className="flex items-start gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
               <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-              Este perfil gerencia equipe, configurações ou financeiro: quem o usar vai precisar da
-              verificação em duas etapas (MFA).
+              Recomendado ligar: este perfil gerencia equipe, configurações ou financeiro.
             </p>
           )}
         </form>

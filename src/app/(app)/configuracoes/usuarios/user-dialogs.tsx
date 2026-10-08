@@ -56,7 +56,7 @@ export type TeamMember = {
   email: string | null;
   roleId: string;
   roleName: string;
-  /** O perfil exige MFA (admin ou permissões sensíveis). */
+  /** O perfil exige MFA (Administrador sempre; os outros conforme a opção do perfil). */
   requiresMfa: boolean;
   active: boolean;
   /** Trabalha só nesta gráfica: o admin pode trocar nome, senha e MFA. */

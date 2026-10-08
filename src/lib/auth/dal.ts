@@ -46,7 +46,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     supabase
       .from("organization_members")
       .select(
-        "role_id, organizations(id, slug, name), organization_roles(id, name, is_admin, permissions)",
+        "role_id, organizations(id, slug, name), organization_roles(id, name, is_admin, permissions, require_mfa)",
       )
       .eq("user_id", claims.sub)
       .eq("active", true),
@@ -63,7 +63,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
       ? [
           {
             isAdmin: row.organization_roles.is_admin,
-            permissions: row.organization_roles.permissions,
+            requireMfa: row.organization_roles.require_mfa,
           },
         ]
       : [],

@@ -7,6 +7,7 @@ import {
   can,
   expandPermissions,
   isPermission,
+  hasSensitivePermission,
   roleRequiresMfa,
 } from "./permissions";
 
@@ -54,16 +55,21 @@ describe("expandPermissions", () => {
 });
 
 describe("roleRequiresMfa", () => {
-  it("exige para o Administrador", () => {
-    expect(roleRequiresMfa({ isAdmin: true, permissions: [] })).toBe(true);
+  it("o Administrador sempre exige", () => {
+    expect(roleRequiresMfa({ isAdmin: true, requireMfa: false })).toBe(true);
   });
-  it.each(SENSITIVE_PERMISSIONS)("exige para quem tem %s", (perm) => {
-    expect(roleRequiresMfa({ isAdmin: false, permissions: [perm] })).toBe(true);
+  it("os outros perfis seguem a opção do perfil", () => {
+    expect(roleRequiresMfa({ isAdmin: false, requireMfa: true })).toBe(true);
+    expect(roleRequiresMfa({ isAdmin: false, requireMfa: false })).toBe(false);
   });
-  it("não exige para perfis operacionais", () => {
-    expect(
-      roleRequiresMfa({ isAdmin: false, permissions: ["pedidos.gerenciar", "financeiro.ver"] }),
-    ).toBe(false);
+});
+
+describe("hasSensitivePermission", () => {
+  it.each(SENSITIVE_PERMISSIONS)("sugere MFA para quem tem %s", (perm) => {
+    expect(hasSensitivePermission([perm])).toBe(true);
+  });
+  it("não sugere para perfis operacionais", () => {
+    expect(hasSensitivePermission(["pedidos.gerenciar", "financeiro.ver"])).toBe(false);
   });
 });
 
