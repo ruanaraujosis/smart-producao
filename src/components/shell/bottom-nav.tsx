@@ -6,17 +6,16 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "cn";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { AppRole } from "@/lib/auth/roles";
-import { isActivePath, navItemsFor, splitBottomNav } from "@/lib/navigation";
+import { isActivePath, navItemsFor, splitBottomNav, type NavContext } from "@/lib/navigation";
 
 const itemClass =
   "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[0.7rem] font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
 /** Navegação inferior do celular. Itens que não cabem ficam no "Mais". */
-export function BottomNav({ role }: { role: AppRole }) {
+export function BottomNav(context: NavContext) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { primary, overflow } = splitBottomNav(navItemsFor(role));
+  const { primary, overflow } = splitBottomNav(navItemsFor(context));
   const overflowActive = overflow.some((item) => isActivePath(pathname, item.href));
 
   return (

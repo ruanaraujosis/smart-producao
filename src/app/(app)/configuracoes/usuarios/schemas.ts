@@ -1,14 +1,20 @@
 import { z } from "zod";
 import { APP_ROLES } from "@/lib/auth/roles";
-import { passwordSchema, usernameSchema } from "@/lib/auth/username";
+import { emailSchema, passwordSchema, usernameSchema } from "@/lib/auth/username";
 
 const fullName = z.string().trim().min(2, "Informe o nome completo.").max(120, "Nome muito longo.");
 const role = z.enum(APP_ROLES, { error: "Escolha o perfil de acesso." });
+const optionalEmail = z
+  .string()
+  .trim()
+  .transform((v) => (v === "" ? undefined : v))
+  .pipe(emailSchema.optional());
 
-export const createUserSchema = z
+export const createMemberSchema = z
   .object({
-    username: usernameSchema,
     fullName,
+    username: usernameSchema,
+    email: optionalEmail,
     role,
     password: passwordSchema,
     confirmPassword: z.string(),
@@ -18,8 +24,8 @@ export const createUserSchema = z
     message: "As senhas não conferem.",
   });
 
-export const updateUserSchema = z.object({
-  id: z.uuid(),
+export const updateMemberSchema = z.object({
+  userId: z.uuid(),
   fullName,
   role,
   active: z.boolean(),
@@ -27,7 +33,7 @@ export const updateUserSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    id: z.uuid(),
+    userId: z.uuid(),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -36,6 +42,6 @@ export const resetPasswordSchema = z
     message: "As senhas não conferem.",
   });
 
-export type CreateUserInput = z.input<typeof createUserSchema>;
-export type UpdateUserInput = z.input<typeof updateUserSchema>;
+export type CreateMemberInput = z.input<typeof createMemberSchema>;
+export type UpdateMemberInput = z.input<typeof updateMemberSchema>;
 export type ResetPasswordInput = z.input<typeof resetPasswordSchema>;

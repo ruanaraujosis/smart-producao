@@ -1,27 +1,33 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { BottomNav } from "@/components/shell/bottom-nav";
 import { SidebarNav, SidebarNavSkeleton } from "@/components/shell/sidebar-nav";
 import { UserMenu } from "@/components/shell/user-menu";
-import { getCurrentUser } from "@/lib/auth/dal";
+import { getShellContext } from "@/lib/auth/dal";
+import { ROLE_LABELS } from "@/lib/auth/roles";
 
 /**
  * Layout das áreas logadas. A moldura (header, sidebar) é estática e entra no
  * shell pré-renderizado; o que depende do usuário carrega dentro de <Suspense>.
+ * Cada página exige o que precisa (gráfica ativa, perfil, SuperAdmin).
  */
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 bg-brand-header text-brand-header-foreground shadow-md">
         <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4 px-4 md:px-6">
-          <Link
-            href="/inicio"
-            className="rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-brand-pink/60"
-          >
-            <Logo />
-          </Link>
+          <div className="flex min-w-0 items-center gap-4">
+            <Link
+              href="/inicio"
+              className="rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-brand-pink/60"
+            >
+              <Logo />
+            </Link>
+            <Suspense fallback={null}>
+              <OrganizationBadge />
+            </Suspense>
+          </div>
           <Suspense fallback={<div className="size-9 rounded-full bg-white/10" aria-hidden />}>
             <HeaderUser />
           </Suspense>
@@ -46,23 +52,47 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   );
 }
 
-async function loadUser() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  return user;
+async function OrganizationBadge() {
+  const { session, membership } = await getShellContext();
+  if (!membership) return null;
+  const label = <span className="truncate">{membership.name}</span>;
+  const className =
+    "hidden max-w-56 items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium sm:flex";
+  return session.memberships.length > 1 ? (
+    <Link
+      href="/selecionar-empresa"
+      className={`${className} outline-none hover:bg-white/15 focus-visible:ring-3 focus-visible:ring-brand-pink/60`}
+      title="Trocar de gráfica"
+    >
+      {label}
+    </Link>
+  ) : (
+    <span className={className}>{label}</span>
+  );
 }
 
 async function HeaderUser() {
-  const user = await loadUser();
-  return <UserMenu fullName={user.fullName} username={user.username} role={user.role} />;
+  const { session, membership } = await getShellContext();
+  return (
+    <UserMenu
+      fullName={session.fullName}
+      username={session.username}
+      subtitle={
+        membership ? ROLE_LABELS[membership.role] : session.isPlatformAdmin ? "SuperAdmin" : ""
+      }
+      organizationName={membership?.name}
+      canSwitchOrganization={session.memberships.length > 1}
+      isPlatformAdmin={session.isPlatformAdmin}
+    />
+  );
 }
 
 async function Sidebar() {
-  const user = await loadUser();
-  return <SidebarNav role={user.role} />;
+  const { session, membership } = await getShellContext();
+  return <SidebarNav role={membership?.role} isPlatformAdmin={session.isPlatformAdmin} />;
 }
 
 async function MobileNav() {
-  const user = await loadUser();
-  return <BottomNav role={user.role} />;
+  const { session, membership } = await getShellContext();
+  return <BottomNav role={membership?.role} isPlatformAdmin={session.isPlatformAdmin} />;
 }

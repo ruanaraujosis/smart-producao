@@ -54,7 +54,7 @@ export async function changeOwnPassword(
   // Confere a senha atual num cliente separado, sem mexer na sessão do navegador.
   const verifier = createStatelessClient();
   const { error: verifyError } = await verifier.auth.signInWithPassword({
-    email: usernameToEmail(user.username),
+    email: user.email ?? usernameToEmail(user.username),
     password: parsed.data.currentPassword,
   });
   if (verifyError) return { ok: false, error: "Senha atual incorreta." };

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /**
- * A equipe entra com usuário no formato `nome.cargo` (como no sistema atual).
- * O Supabase Auth exige e-mail, então cada usuário recebe um e-mail interno
- * derivado do username. Esse e-mail nunca é exibido nem recebe mensagens.
+ * Cada pessoa tem um usuário `nome.cargo` único na plataforma e, opcionalmente,
+ * um e-mail real. Quem não tem e-mail recebe no Supabase Auth um e-mail interno
+ * derivado do usuário, que nunca é exibido nem recebe mensagens.
  */
 export const INTERNAL_EMAIL_DOMAIN = "usuarios.smart.local";
 
@@ -32,6 +32,20 @@ export function usernameToEmail(username: string) {
 export function emailToUsername(email: string) {
   const suffix = `@${INTERNAL_EMAIL_DOMAIN}`;
   return email.endsWith(suffix) ? email.slice(0, -suffix.length) : null;
+}
+
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email("E-mail inválido."))
+  .refine((email) => !email.endsWith(`@${INTERNAL_EMAIL_DOMAIN}`), "E-mail inválido.");
+
+/** O campo único do login aceita e-mail ou usuário. */
+export function parseLoginIdentifier(raw: string) {
+  const value = raw.trim();
+  if (value.includes("@")) return { kind: "email" as const, value: value.toLowerCase() };
+  return { kind: "username" as const, value: normalizeUsername(value) };
 }
 
 export const passwordSchema = z

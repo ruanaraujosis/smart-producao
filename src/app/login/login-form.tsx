@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -13,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { login } from "./actions";
 
 const schema = z.object({
-  username: z.string().trim().min(1, "Informe o usuário."),
+  identifier: z.string().trim().min(1, "Informe o e-mail ou usuário."),
   password: z.string().min(1, "Informe a senha."),
 });
 
@@ -21,7 +22,11 @@ type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const [serverError, setServerError] = useState<string>();
+  const linkError =
+    searchParams.get("erro") === "link-invalido"
+      ? 'O link expirou ou já foi usado. Peça um novo em "Esqueci minha senha".'
+      : undefined;
+  const [serverError, setServerError] = useState<string | undefined>(linkError);
   const [showPassword, setShowPassword] = useState(false);
   const [pending, startTransition] = useTransition();
   const {
@@ -30,7 +35,7 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { username: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   const onSubmit = handleSubmit((values) => {
@@ -50,31 +55,39 @@ export function LoginForm() {
       )}
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="username">Usuário</Label>
+        <Label htmlFor="identifier">E-mail ou usuário</Label>
         <Input
-          id="username"
-          placeholder="nome.cargo"
+          id="identifier"
+          placeholder="voce@grafica.com.br ou nome.cargo"
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          aria-invalid={Boolean(errors.username)}
-          aria-describedby={errors.username ? "username-erro" : "username-ajuda"}
-          {...register("username")}
+          aria-invalid={Boolean(errors.identifier)}
+          aria-describedby={errors.identifier ? "identifier-erro" : "identifier-ajuda"}
+          {...register("identifier")}
         />
-        {errors.username ? (
-          <p id="username-erro" className="text-sm text-destructive">
-            {errors.username.message}
+        {errors.identifier ? (
+          <p id="identifier-erro" className="text-sm text-destructive">
+            {errors.identifier.message}
           </p>
         ) : (
-          <p id="username-ajuda" className="text-xs text-muted-foreground">
-            O mesmo formato do sistema atual, ex.: joao.producao
+          <p id="identifier-ajuda" className="text-xs text-muted-foreground">
+            Quem não tem e-mail entra com o usuário, ex.: joao.producao
           </p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Senha</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="password">Senha</Label>
+          <Link
+            href="/esqueci-senha"
+            className="-my-3 inline-flex min-h-11 items-center rounded-md text-xs font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
         <div className="relative">
           <Input
             id="password"

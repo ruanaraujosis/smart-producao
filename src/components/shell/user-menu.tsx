@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
+import { ArrowLeftRight, Building2, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -19,17 +19,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/lib/auth/actions";
-import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { initials } from "@/lib/format";
 
 export function UserMenu({
   fullName,
   username,
-  role,
+  subtitle,
+  organizationName,
+  canSwitchOrganization,
+  isPlatformAdmin,
 }: {
   fullName: string;
   username: string;
-  role: AppRole;
+  /** Perfil na gráfica ativa, ou "SuperAdmin" fora de uma gráfica. */
+  subtitle: string;
+  organizationName?: string;
+  canSwitchOrganization: boolean;
+  isPlatformAdmin: boolean;
 }) {
   const { theme, setTheme } = useTheme();
 
@@ -46,13 +52,16 @@ export function UserMenu({
         </Avatar>
         <span className="hidden flex-col text-left leading-tight md:flex">
           <span className="text-sm font-semibold">{fullName}</span>
-          <span className="text-xs text-white/70">{ROLE_LABELS[role]}</span>
+          <span className="text-xs text-white/70">{subtitle}</span>
         </span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex flex-col">
           <span className="text-sm font-semibold text-foreground">{fullName}</span>
           <span className="text-xs font-normal text-muted-foreground">{username}</span>
+          {organizationName && (
+            <span className="mt-1 text-xs font-medium text-primary">{organizationName}</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -62,6 +71,22 @@ export function UserMenu({
               Meu perfil
             </Link>
           </DropdownMenuItem>
+          {canSwitchOrganization && (
+            <DropdownMenuItem asChild>
+              <Link href="/selecionar-empresa">
+                <ArrowLeftRight />
+                Trocar de gráfica
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {isPlatformAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/plataforma">
+                <Building2 />
+                Plataforma
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Moon />

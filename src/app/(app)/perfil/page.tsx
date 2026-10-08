@@ -1,4 +1,4 @@
-import { KeyRound, Palette, UserRound } from "lucide-react";
+import { KeyRound, Palette, ShieldCheck, UserRound } from "lucide-react";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/kit/page-header";
 import { IconChip } from "@/components/kit/stat-card";
@@ -64,7 +64,7 @@ async function AccountSection() {
     <Section
       icon={UserRound}
       title="Conta"
-      description="Seu usuário e perfil são definidos pelo administrador."
+      description="Usuário, e-mail e gráficas são definidos pelo administrador."
     >
       <dl className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -72,8 +72,42 @@ async function AccountSection() {
           <dd className="font-mono text-sm">{user.username}</dd>
         </div>
         <div>
-          <dt className="text-xs text-muted-foreground">Perfil de acesso</dt>
-          <dd className="text-sm font-medium">{ROLE_LABELS[user.role]}</dd>
+          <dt className="text-xs text-muted-foreground">E-mail</dt>
+          <dd className="text-sm">{user.email ?? "Não cadastrado"}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-xs text-muted-foreground">Gráficas e perfis</dt>
+          <dd className="mt-1 flex flex-wrap gap-2">
+            {user.isPlatformAdmin && (
+              <span className="inline-flex h-7 items-center rounded-full bg-brand-pink/12 px-3 text-xs font-medium text-brand-pink">
+                SuperAdmin da plataforma
+              </span>
+            )}
+            {user.memberships.map((m) => (
+              <span
+                key={m.organizationId}
+                className="inline-flex h-7 items-center rounded-full bg-accent px-3 text-xs font-medium text-accent-foreground"
+              >
+                {m.name} · {ROLE_LABELS[m.role]}
+              </span>
+            ))}
+          </dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-xs text-muted-foreground">Verificação em duas etapas</dt>
+          <dd className="mt-1 flex items-center gap-2 text-sm">
+            <ShieldCheck
+              className={
+                user.aal === "aal2" ? "size-4 text-success" : "size-4 text-muted-foreground"
+              }
+              aria-hidden
+            />
+            {user.aal === "aal2"
+              ? "Ativa nesta sessão (app autenticador)."
+              : user.mfaRequired
+                ? "Obrigatória para o seu perfil."
+                : "Não exigida para o seu perfil."}
+          </dd>
         </div>
       </dl>
       <NameForm fullName={user.fullName} />

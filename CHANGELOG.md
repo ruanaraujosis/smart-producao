@@ -10,12 +10,16 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 - Projeto Next.js 16 (App Router, Cache Components) com TypeScript estrito, Tailwind CSS 4 e shadcn/ui.
 - Design system com a paleta da Smart Gráfica, fonte Poppins e tema **claro, escuro e automático**.
-- Login com usuário `nome.cargo` e senha (Supabase Auth), com sessão renovada no `proxy.ts`.
+- **Multi-empresa (SaaS)**: gráficas (tenants), vínculo pessoa↔gráfica com perfil por gráfica, isolamento por RLS.
+- Login único por **e-mail ou usuário** `nome.cargo`, seletor de gráfica para quem trabalha em mais de uma e troca pelo header.
+- **MFA obrigatório** (app autenticador) para admins e SuperAdmin, exigido também pelo banco (`aal2`).
+- Painel da **plataforma** (SuperAdmin): cadastro de gráficas e do primeiro admin, ativar/desativar.
+- Recuperação de senha por e-mail (`/esqueci-senha`).
 - Perfis de acesso (admin, atendimento, designer, produção, expedição, financeiro) com RLS no Postgres.
 - Tabela de auditoria com trigger genérico (quem alterou o quê e quando).
 - Layout responsivo: sidebar no desktop, navegação inferior no celular e menu filtrado por perfil.
-- Gestão de usuários (admin): criar, editar perfil, desativar/reativar e redefinir senha.
+- Gestão da equipe da gráfica (admin): adicionar pessoa nova ou existente, perfil, desativar, redefinir senha e MFA.
 - Página _Meu perfil_: nome, troca de senha e tema.
 - PWA instalável (manifest e ícones gerados).
-- Script `npm run admin:criar` para o primeiro administrador.
+- Script `npm run plataforma:iniciar` para a primeira gráfica e o SuperAdmin.
 - CI no GitHub Actions (formatação, lint, tipos, Vitest, build, validação de migrations, Playwright), Dependabot e template de PR.

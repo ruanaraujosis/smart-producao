@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  emailSchema,
   emailToUsername,
   normalizeUsername,
+  parseLoginIdentifier,
   passwordSchema,
   usernameSchema,
   usernameToEmail,
@@ -46,5 +48,29 @@ describe("passwordSchema", () => {
   it("exige pelo menos 8 caracteres", () => {
     expect(passwordSchema.safeParse("1234567").success).toBe(false);
     expect(passwordSchema.safeParse("12345678").success).toBe(true);
+  });
+});
+
+describe("parseLoginIdentifier", () => {
+  it("reconhece e-mail", () => {
+    expect(parseLoginIdentifier(" Ruan@Grafica.com ")).toEqual({
+      kind: "email",
+      value: "ruan@grafica.com",
+    });
+  });
+  it("reconhece usuário e normaliza", () => {
+    expect(parseLoginIdentifier("João.Produção")).toEqual({
+      kind: "username",
+      value: "joao.producao",
+    });
+  });
+});
+
+describe("emailSchema", () => {
+  it("recusa o domínio interno", () => {
+    expect(emailSchema.safeParse("x.y@usuarios.smart.local").success).toBe(false);
+  });
+  it("normaliza para minúsculas", () => {
+    expect(emailSchema.parse(" Ana@Grafica.COM ")).toBe("ana@grafica.com");
   });
 });

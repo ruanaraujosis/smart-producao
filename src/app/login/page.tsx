@@ -32,9 +32,7 @@ export default function LoginPage() {
             <LogoMark className="size-14 lg:hidden" />
             <div>
               <h1 className="font-heading text-2xl font-bold tracking-tight">Entrar no sistema</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Use seu usuário e senha da Smart.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Entre com seu e-mail ou usuário.</p>
             </div>
           </div>
           <div className="rounded-2xl border bg-card p-6 shadow-sm">
@@ -43,7 +41,7 @@ export default function LoginPage() {
             </Suspense>
           </div>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Esqueceu a senha? Peça ao administrador para redefinir.
+            Entra só com usuário? Peça ao admin da sua gráfica para redefinir a senha.
           </p>
         </div>
       </main>

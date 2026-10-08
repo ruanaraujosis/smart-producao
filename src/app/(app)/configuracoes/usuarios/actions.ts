@@ -1,75 +1,97 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/auth/dal";
-import { usernameToEmail } from "@/lib/auth/username";
+import { z } from "zod";
+import { requireOrg } from "@/lib/auth/dal";
+import {
+  createPerson,
+  deletePerson,
+  exclusiveMembers,
+  lookupPerson,
+  recordAudit,
+  resetMfa,
+  resetPassword,
+} from "@/lib/auth/people";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
-  createUserSchema,
+  createMemberSchema,
   resetPasswordSchema,
-  updateUserSchema,
-  type CreateUserInput,
+  updateMemberSchema,
+  type CreateMemberInput,
   type ResetPasswordInput,
-  type UpdateUserInput,
+  type UpdateMemberInput,
 } from "./schemas";
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
 
 const PAGE = "/configuracoes/usuarios";
-/** "Banimento" longo = conta bloqueada no Auth enquanto o usuário estiver desativado. */
-const DEACTIVATED_BAN = "876000h";
+const NOT_EXCLUSIVE =
+  "Esta pessoa também participa de outra gráfica. Ela mesma deve alterar isso em “Meu perfil” ou “Esqueci minha senha”.";
 
-export async function createTeamUser(input: CreateUserInput): Promise<ActionResult> {
-  await requireRole(["admin"]);
-  const parsed = createUserSchema.safeParse(input);
+export async function createMember(input: CreateMemberInput): Promise<ActionResult> {
+  const { membership } = await requireOrg(["admin"]);
+  const parsed = createMemberSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
-  const { username, fullName, role, password } = parsed.data;
+  const { fullName, username, email, role, password } = parsed.data;
 
   const supabase = await createClient();
-  const { data: taken } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("username", username)
-    .maybeSingle();
-  if (taken) return { ok: false, error: `O usuário "${username}" já existe.` };
+  const person = await lookupPerson({ username, email });
+  if (person.kind === "username-taken") {
+    return { ok: false, error: `O usuário "${username}" já está em uso. Escolha outro.` };
+  }
 
-  const admin = createAdminClient();
-  const { data: created, error: authError } = await admin.auth.admin.createUser({
-    email: usernameToEmail(username),
-    password,
-    email_confirm: true,
-  });
-  if (authError || !created.user) {
+  if (person.kind === "existing") {
+    const { data: current } = await supabase
+      .from("organization_members")
+      .select("active")
+      .eq("organization_id", membership.organizationId)
+      .eq("user_id", person.userId)
+      .maybeSingle();
+    if (current?.active)
+      return { ok: false, error: `${person.fullName} já faz parte desta gráfica.` };
+
+    // O vínculo é gravado com a sessão do admin para a auditoria registrar quem adicionou.
+    const { error } = current
+      ? await supabase
+          .from("organization_members")
+          .update({ active: true, role })
+          .eq("organization_id", membership.organizationId)
+          .eq("user_id", person.userId)
+      : await supabase
+          .from("organization_members")
+          .insert({ organization_id: membership.organizationId, user_id: person.userId, role });
+    if (error) return { ok: false, error: "Não foi possível adicionar a pessoa." };
+
+    revalidatePath(PAGE);
     return {
-      ok: false,
-      error: "Não foi possível criar o acesso. Verifique a senha e tente novamente.",
+      ok: true,
+      message: `${person.fullName} já tinha conta e foi adicionado(a). A senha dela continua a mesma.`,
     };
   }
 
-  // O perfil é gravado com a sessão do admin para a auditoria registrar quem criou.
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: created.user.id,
-    username,
-    full_name: fullName,
-    role,
-  });
-  if (profileError) {
-    await admin.auth.admin.deleteUser(created.user.id);
-    return { ok: false, error: "Não foi possível salvar o perfil do usuário." };
+  const created = await createPerson({ username, fullName, email, password });
+  if ("error" in created) return { ok: false, error: created.error };
+
+  const { error } = await supabase
+    .from("organization_members")
+    .insert({ organization_id: membership.organizationId, user_id: created.userId, role });
+  if (error) {
+    await deletePerson(created.userId);
+    return { ok: false, error: "Não foi possível adicionar a pessoa à gráfica." };
   }
 
   revalidatePath(PAGE);
-  return { ok: true, message: `Usuário ${username} criado.` };
+  return { ok: true, message: `${fullName} foi adicionado(a) como ${username}.` };
 }
 
-export async function updateTeamUser(input: UpdateUserInput): Promise<ActionResult> {
-  const actor = await requireRole(["admin"]);
-  const parsed = updateUserSchema.safeParse(input);
+export async function updateMember(input: UpdateMemberInput): Promise<ActionResult> {
+  const { session, membership } = await requireOrg(["admin"]);
+  const parsed = updateMemberSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
-  const { id, fullName, role, active } = parsed.data;
+  const { userId, fullName, role, active } = parsed.data;
 
-  if (id === actor.id && (role !== "admin" || !active)) {
+  if (userId === session.id && (role !== "admin" || !active)) {
     return {
       ok: false,
       error: "Você não pode alterar o próprio perfil de acesso nem se desativar.",
@@ -77,52 +99,89 @@ export async function updateTeamUser(input: UpdateUserInput): Promise<ActionResu
   }
 
   const supabase = await createClient();
-  const { data: before } = await supabase
-    .from("profiles")
-    .select("active")
-    .eq("id", id)
+  const { data: member } = await supabase
+    .from("organization_members")
+    .select("user_id, profiles(full_name)")
+    .eq("organization_id", membership.organizationId)
+    .eq("user_id", userId)
     .maybeSingle();
-  if (!before) return { ok: false, error: "Usuário não encontrado." };
+  if (!member) return { ok: false, error: "Pessoa não encontrada nesta gráfica." };
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ full_name: fullName, role, active })
-    .eq("id", id);
-  if (error) return { ok: false, error: "Não foi possível salvar as alterações." };
-
-  if (before.active !== active) {
-    const { error: banError } = await createAdminClient().auth.admin.updateUserById(id, {
-      ban_duration: active ? "none" : DEACTIVATED_BAN,
-    });
-    if (banError) {
-      return {
-        ok: false,
-        error: "Perfil salvo, mas não foi possível bloquear/liberar o login. Tente de novo.",
-      };
-    }
+  if (member.profiles && member.profiles.full_name !== fullName) {
+    const exclusive = await exclusiveMembers(membership.organizationId, [userId]);
+    if (!exclusive.has(userId) && userId !== session.id) return { ok: false, error: NOT_EXCLUSIVE };
+    const { error } = await createAdminClient()
+      .from("profiles")
+      .update({ full_name: fullName })
+      .eq("id", userId);
+    if (error) return { ok: false, error: "Não foi possível salvar o nome." };
   }
 
+  const { error } = await supabase
+    .from("organization_members")
+    .update({ role, active })
+    .eq("organization_id", membership.organizationId)
+    .eq("user_id", userId);
+  if (error) return { ok: false, error: "Não foi possível salvar as alterações." };
+
   revalidatePath(PAGE);
-  return { ok: true, message: "Usuário atualizado." };
+  return { ok: true, message: "Alterações salvas." };
 }
 
-export async function resetTeamUserPassword(input: ResetPasswordInput): Promise<ActionResult> {
-  const actor = await requireRole(["admin"]);
+async function requireExclusiveMember(userId: string) {
+  const context = await requireOrg(["admin"]);
+  const supabase = await createClient();
+  const { data: member } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", context.membership.organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!member) return { ...context, error: "Pessoa não encontrada nesta gráfica." };
+  const exclusive = await exclusiveMembers(context.membership.organizationId, [userId]);
+  if (!exclusive.has(userId)) return { ...context, error: NOT_EXCLUSIVE };
+  return { ...context, error: null };
+}
+
+export async function resetMemberPassword(input: ResetPasswordInput): Promise<ActionResult> {
   const parsed = resetPasswordSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
 
-  const admin = createAdminClient();
-  const { error } = await admin.auth.admin.updateUserById(parsed.data.id, {
-    password: parsed.data.password,
-  });
-  if (error) return { ok: false, error: "Não foi possível redefinir a senha." };
+  const { session, membership, error } = await requireExclusiveMember(parsed.data.userId);
+  if (error) return { ok: false, error };
 
-  await admin.from("audit_log").insert({
-    table_name: "auth.users",
-    record_id: parsed.data.id,
+  if (!(await resetPassword(parsed.data.userId, parsed.data.password))) {
+    return { ok: false, error: "Não foi possível redefinir a senha." };
+  }
+  await recordAudit({
+    organizationId: membership.organizationId,
     action: "PASSWORD_RESET",
-    actor_id: actor.id,
+    userId: parsed.data.userId,
+    actorId: session.id,
   });
+  return { ok: true, message: "Senha redefinida. Passe a nova senha pessoalmente." };
+}
 
-  return { ok: true, message: "Senha redefinida. Passe a nova senha pessoalmente ao usuário." };
+export async function resetMemberMfa(userId: string): Promise<ActionResult> {
+  const id = z.uuid().safeParse(userId);
+  if (!id.success) return { ok: false, error: "Pessoa inválida." };
+
+  const { session, membership, error } = await requireExclusiveMember(id.data);
+  if (error) return { ok: false, error };
+  if (id.data === session.id) {
+    return { ok: false, error: "Peça a outro administrador para redefinir o seu MFA." };
+  }
+
+  if (!(await resetMfa(id.data))) return { ok: false, error: "Não foi possível redefinir o MFA." };
+  await recordAudit({
+    organizationId: membership.organizationId,
+    action: "MFA_RESET",
+    userId: id.data,
+    actorId: session.id,
+  });
+  return {
+    ok: true,
+    message:
+      "Verificação em duas etapas redefinida. No próximo login a pessoa cadastra o app de novo.",
+  };
 }

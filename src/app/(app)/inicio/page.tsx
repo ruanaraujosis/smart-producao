@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { ChannelBadge } from "@/components/kit/channel-badge";
 import { PageHeader } from "@/components/kit/page-header";
 import { IconChip, type Tone } from "@/components/kit/stat-card";
-import { requireUser } from "@/lib/auth/dal";
+import { requireOrg } from "@/lib/auth/dal";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { TIME_ZONE } from "@/lib/format";
 import { navItemsFor } from "@/lib/navigation";
@@ -15,7 +15,7 @@ const ROADMAP = [
   {
     phase: 1,
     title: "Fundação",
-    detail: "Acesso por perfil, layout responsivo, tema claro/escuro",
+    detail: "Multi-empresa, perfis por gráfica, MFA, tema claro/escuro",
   },
   {
     phase: 2,
@@ -127,19 +127,22 @@ function greetingFor(date: Date) {
 }
 
 async function Greeting() {
-  const user = await requireUser();
-  const firstName = user.fullName.split(" ")[0];
+  const { session, membership } = await requireOrg();
+  const firstName = session.fullName.split(" ")[0];
   return (
     <PageHeader
       title={`${greetingFor(new Date())}, ${firstName}!`}
-      description={`Você está conectado como ${ROLE_LABELS[user.role]}.`}
+      description={`${membership.name} · você está como ${ROLE_LABELS[membership.role]}.`}
     />
   );
 }
 
 async function Shortcuts() {
-  const user = await requireUser();
-  const items = navItemsFor(user.role).filter((item) => item.href !== "/inicio");
+  const { session, membership } = await requireOrg();
+  const items = navItemsFor({
+    role: membership.role,
+    isPlatformAdmin: session.isPlatformAdmin,
+  }).filter((item) => item.href !== "/inicio");
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map((item, index) => (

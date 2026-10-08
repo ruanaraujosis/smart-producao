@@ -8,7 +8,8 @@ import {
   splitBottomNav,
 } from "./navigation";
 
-const hrefs = (role: (typeof APP_ROLES)[number]) => navItemsFor(role).map((item) => item.href);
+const hrefs = (role: (typeof APP_ROLES)[number], isPlatformAdmin = false) =>
+  navItemsFor({ role, isPlatformAdmin }).map((item) => item.href);
 
 describe("hasRole", () => {
   it("admin passa em qualquer regra", () => {
@@ -21,7 +22,9 @@ describe("hasRole", () => {
 
 describe("navItemsFor", () => {
   it("admin vê todos os módulos", () => {
-    expect(hrefs("admin")).toEqual(NAV_ITEMS.map((item) => item.href));
+    expect(hrefs("admin")).toEqual(
+      NAV_ITEMS.filter((item) => item.scope === "org").map((item) => item.href),
+    );
   });
 
   it("todos os perfis veem o Início", () => {
@@ -43,8 +46,16 @@ describe("navItemsFor", () => {
     expect(hrefs("designer")).toEqual(expect.arrayContaining(["/artes", "/pcp"]));
   });
 
-  it("sem perfil não vê nada", () => {
-    expect(navItemsFor(null)).toEqual([]);
+  it("sem gráfica ativa não vê módulos", () => {
+    expect(navItemsFor({ role: null })).toEqual([]);
+  });
+
+  it("Plataforma só aparece para o SuperAdmin", () => {
+    expect(hrefs("admin")).not.toContain("/plataforma");
+    expect(hrefs("producao", true)).toContain("/plataforma");
+    expect(navItemsFor({ role: null, isPlatformAdmin: true }).map((i) => i.href)).toEqual([
+      "/plataforma",
+    ]);
   });
 });
 

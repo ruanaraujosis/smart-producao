@@ -4,7 +4,14 @@ import { getPublicEnv } from "@/lib/env";
 import type { Database } from "./database.types";
 
 /** Rotas acessíveis sem login. */
-const PUBLIC_PATHS = ["/login", "/manifest.webmanifest", "/icon", "/apple-icon"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/esqueci-senha",
+  "/auth/confirm",
+  "/manifest.webmanifest",
+  "/icon",
+  "/apple-icon",
+];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

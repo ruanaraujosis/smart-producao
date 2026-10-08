@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound, Loader2, Pencil, UserPlus } from "lucide-react";
+import { KeyRound, Loader2, Pencil, ShieldOff, UserPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Controller, useForm, useWatch, type FieldError as RHFFieldError } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -27,20 +28,27 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { APP_ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import {
-  createTeamUser,
-  resetTeamUserPassword,
-  updateTeamUser,
+  createMember,
+  resetMemberMfa,
+  resetMemberPassword,
+  updateMember,
   type ActionResult,
 } from "./actions";
-import { createUserSchema, resetPasswordSchema, updateUserSchema } from "./schemas";
+import { createMemberSchema, resetPasswordSchema, updateMemberSchema } from "./schemas";
 
-export type TeamUser = {
-  id: string;
+export type TeamMember = {
+  userId: string;
   username: string;
   fullName: string;
+  email: string | null;
   role: AppRole;
   active: boolean;
+  /** Trabalha só nesta gráfica: o admin pode trocar nome, senha e MFA. */
+  exclusive: boolean;
+  isSelf: boolean;
 };
+
+const NOT_EXCLUSIVE_HINT = "Participa de outra gráfica: só a própria pessoa altera.";
 
 function Field({
   id,
@@ -118,13 +126,14 @@ function RoleSelect({
   );
 }
 
-export function CreateUserDialog() {
+export function CreateMemberDialog() {
   const [open, setOpen] = useState(false);
   const form = useForm({
-    resolver: zodResolver(createUserSchema),
+    resolver: zodResolver(createMemberSchema),
     defaultValues: {
-      username: "",
       fullName: "",
+      username: "",
+      email: "",
       role: undefined,
       password: "",
       confirmPassword: "",
@@ -142,20 +151,21 @@ export function CreateUserDialog() {
       <DialogTrigger asChild>
         <Button>
           <UserPlus />
-          Novo usuário
+          Adicionar pessoa
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Novo usuário</DialogTitle>
+          <DialogTitle>Adicionar pessoa à gráfica</DialogTitle>
           <DialogDescription>
-            A pessoa entra com o usuário e a senha definidos aqui.
+            Se a pessoa já tiver conta na plataforma (mesmo e-mail), ela só é vinculada a esta
+            gráfica e continua com a senha atual.
           </DialogDescription>
         </DialogHeader>
         <form
-          id="create-user"
+          id="create-member"
           noValidate
-          onSubmit={form.handleSubmit((values) => run(() => createTeamUser(values)))}
+          onSubmit={form.handleSubmit(() => run(() => createMember(form.getValues())))}
           className="flex flex-col gap-4"
         >
           <Field id="new-fullName" label="Nome completo" error={errors.fullName}>
@@ -166,25 +176,41 @@ export function CreateUserDialog() {
               {...form.register("fullName")}
             />
           </Field>
-          <Field
-            id="new-username"
-            label="Usuário"
-            error={errors.username}
-            hint="Formato nome.cargo, ex.: maria.atendimento"
-          >
-            <Input
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
               id="new-username"
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="nome.cargo"
-              {...invalidProps("new-username", errors.username)}
-              {...form.register("username")}
-            />
-          </Field>
+              label="Usuário"
+              error={errors.username}
+              hint="nome.cargo, único na plataforma"
+            >
+              <Input
+                id="new-username"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="maria.atendimento"
+                {...invalidProps("new-username", errors.username)}
+                {...form.register("username")}
+              />
+            </Field>
+            <Field
+              id="new-email"
+              label="E-mail (opcional)"
+              error={errors.email}
+              hint="Permite recuperar a senha sozinha"
+            >
+              <Input
+                id="new-email"
+                type="email"
+                autoComplete="off"
+                {...invalidProps("new-email", errors.email)}
+                {...form.register("email")}
+              />
+            </Field>
+          </div>
           <Field
             id="new-role"
-            label="Perfil de acesso"
+            label="Perfil nesta gráfica"
             error={errors.role}
             hint={role ? ROLE_DESCRIPTIONS[role] : undefined}
           >
@@ -223,9 +249,9 @@ export function CreateUserDialog() {
           </div>
         </form>
         <DialogFooter>
-          <Button type="submit" form="create-user" disabled={pending}>
+          <Button type="submit" form="create-member" disabled={pending}>
             {pending && <Loader2 className="animate-spin" />}
-            Criar usuário
+            Adicionar
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -233,59 +259,66 @@ export function CreateUserDialog() {
   );
 }
 
-export function EditUserDialog({ user, isSelf }: { user: TeamUser; isSelf: boolean }) {
+export function EditMemberDialog({ member }: { member: TeamMember }) {
   const [open, setOpen] = useState(false);
-  const form = useForm({
-    resolver: zodResolver(updateUserSchema),
-    defaultValues: { id: user.id, fullName: user.fullName, role: user.role, active: user.active },
-  });
+  const defaults = {
+    userId: member.userId,
+    fullName: member.fullName,
+    role: member.role,
+    active: member.active,
+  };
+  const form = useForm({ resolver: zodResolver(updateMemberSchema), defaultValues: defaults });
   const { errors } = form.formState;
   const { pending, run } = useSubmit(() => setOpen(false));
-  const prefix = `edit-${user.id}`;
+  const prefix = `edit-${member.userId}`;
+  const canEditName = member.exclusive || member.isSelf;
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next)
-          form.reset({
-            id: user.id,
-            fullName: user.fullName,
-            role: user.role,
-            active: user.active,
-          });
+        if (next) form.reset(defaults);
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" aria-label={`Editar ${user.fullName}`}>
+        <Button variant="outline" size="sm" aria-label={`Editar ${member.fullName}`}>
           <Pencil />
           Editar
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Editar usuário</DialogTitle>
-          <DialogDescription className="font-mono">{user.username}</DialogDescription>
+          <DialogTitle>Editar pessoa</DialogTitle>
+          <DialogDescription className="font-mono">
+            {member.username}
+            {member.email ? ` · ${member.email}` : ""}
+          </DialogDescription>
         </DialogHeader>
         <form
           id={prefix}
           noValidate
-          onSubmit={form.handleSubmit((values) => run(() => updateTeamUser(values)))}
+          onSubmit={form.handleSubmit((values) => run(() => updateMember(values)))}
           className="flex flex-col gap-4"
         >
-          <Field id={`${prefix}-name`} label="Nome completo" error={errors.fullName}>
+          <Field
+            id={`${prefix}-name`}
+            label="Nome completo"
+            error={errors.fullName}
+            hint={canEditName ? undefined : NOT_EXCLUSIVE_HINT}
+          >
             <Input
               id={`${prefix}-name`}
+              disabled={!canEditName}
               {...invalidProps(`${prefix}-name`, errors.fullName)}
               {...form.register("fullName")}
             />
           </Field>
           <Field
             id={`${prefix}-role`}
-            label="Perfil de acesso"
+            label="Perfil nesta gráfica"
             error={errors.role}
-            hint={isSelf ? "Você não pode alterar o próprio perfil." : undefined}
+            hint={member.isSelf ? "Você não pode alterar o próprio perfil." : undefined}
           >
             <Controller
               control={form.control}
@@ -295,7 +328,7 @@ export function EditUserDialog({ user, isSelf }: { user: TeamUser; isSelf: boole
                   id={`${prefix}-role`}
                   value={field.value}
                   onChange={field.onChange}
-                  disabled={isSelf}
+                  disabled={member.isSelf}
                   error={errors.role}
                 />
               )}
@@ -307,18 +340,18 @@ export function EditUserDialog({ user, isSelf }: { user: TeamUser; isSelf: boole
             render={({ field }) => (
               <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/60 p-3">
                 <div>
-                  <Label htmlFor={`${prefix}-active`}>Acesso liberado</Label>
+                  <Label htmlFor={`${prefix}-active`}>Acesso a esta gráfica</Label>
                   <p className="text-xs text-muted-foreground">
-                    {isSelf
+                    {member.isSelf
                       ? "Você não pode se desativar."
-                      : "Desativado, o usuário não consegue entrar."}
+                      : "Desativado, a pessoa deixa de ver esta gráfica."}
                   </p>
                 </div>
                 <Switch
                   id={`${prefix}-active`}
                   checked={field.value}
                   onCheckedChange={field.onChange}
-                  disabled={isSelf}
+                  disabled={member.isSelf}
                 />
               </div>
             )}
@@ -335,23 +368,29 @@ export function EditUserDialog({ user, isSelf }: { user: TeamUser; isSelf: boole
   );
 }
 
-export function ResetPasswordDialog({ user }: { user: TeamUser }) {
+export function ResetPasswordDialog({ member }: { member: TeamMember }) {
   const [open, setOpen] = useState(false);
   const form = useForm({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { id: user.id, password: "", confirmPassword: "" },
+    defaultValues: { userId: member.userId, password: "", confirmPassword: "" },
   });
   const { errors } = form.formState;
   const { pending, run } = useSubmit(() => {
     setOpen(false);
     form.reset();
   });
-  const prefix = `reset-${user.id}`;
+  const prefix = `reset-${member.userId}`;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label={`Redefinir senha de ${user.fullName}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={!member.exclusive}
+          title={member.exclusive ? undefined : NOT_EXCLUSIVE_HINT}
+          aria-label={`Redefinir senha de ${member.fullName}`}
+        >
           <KeyRound />
           Senha
         </Button>
@@ -360,14 +399,14 @@ export function ResetPasswordDialog({ user }: { user: TeamUser }) {
         <DialogHeader>
           <DialogTitle>Redefinir senha</DialogTitle>
           <DialogDescription>
-            Nova senha para <strong>{user.fullName}</strong>. Depois, peça para a pessoa trocar em
+            Nova senha para <strong>{member.fullName}</strong>. Depois, peça para a pessoa trocar em
             “Meu perfil”.
           </DialogDescription>
         </DialogHeader>
         <form
           id={prefix}
           noValidate
-          onSubmit={form.handleSubmit((values) => run(() => resetTeamUserPassword(values)))}
+          onSubmit={form.handleSubmit((values) => run(() => resetMemberPassword(values)))}
           className="flex flex-col gap-4"
         >
           <Field id={`${prefix}-pw`} label="Nova senha" error={errors.password}>
@@ -393,6 +432,57 @@ export function ResetPasswordDialog({ user }: { user: TeamUser }) {
           <Button type="submit" form={prefix} disabled={pending}>
             {pending && <Loader2 className="animate-spin" />}
             Redefinir senha
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Só aparece para admins: são os únicos com MFA obrigatório. */
+export function ResetMfaDialog({ member }: { member: TeamMember }) {
+  const [open, setOpen] = useState(false);
+  const { pending, run } = useSubmit(() => setOpen(false));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={!member.exclusive || member.isSelf}
+          title={
+            member.isSelf
+              ? "Peça a outro administrador."
+              : member.exclusive
+                ? undefined
+                : NOT_EXCLUSIVE_HINT
+          }
+          aria-label={`Redefinir MFA de ${member.fullName}`}
+        >
+          <ShieldOff />
+          MFA
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Redefinir verificação em duas etapas?</DialogTitle>
+          <DialogDescription>
+            Use quando <strong>{member.fullName}</strong> perder ou trocar o celular. No próximo
+            login a pessoa cadastra o app autenticador de novo.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button
+            variant="destructive"
+            disabled={pending}
+            onClick={() => run(() => resetMemberMfa(member.userId))}
+          >
+            {pending && <Loader2 className="animate-spin" />}
+            Redefinir MFA
           </Button>
         </DialogFooter>
       </DialogContent>

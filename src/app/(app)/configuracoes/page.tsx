@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/kit/page-header";
 import { IconChip, type Tone } from "@/components/kit/stat-card";
-import { requireRole } from "@/lib/auth/dal";
+import { requireOrg } from "@/lib/auth/dal";
 
 export const metadata = { title: "Configurações" };
 
@@ -50,7 +50,7 @@ export default function ConfiguracoesPage() {
 }
 
 async function SectionsGrid() {
-  await requireRole(["admin"]);
+  await requireOrg(["admin"]);
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {SECTIONS.map((section) => {

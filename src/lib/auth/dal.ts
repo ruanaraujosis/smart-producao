@@ -1,50 +1,123 @@
 import "server-only";
-import { cache } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { hasRole, type AppRole } from "./roles";
+import {
+  ACTIVE_ORG_COOKIE,
+  requiresMfa,
+  resolveActiveMembership,
+  type Membership,
+} from "./organization";
+import { hasRole, isAppRole, type AppRole } from "./roles";
 
-export type CurrentUser = {
+export type Session = {
   id: string;
   username: string;
   fullName: string;
-  role: AppRole;
+  email: string | null;
+  /** Nível da sessão: aal2 = senha + código do autenticador. */
+  aal: "aal1" | "aal2";
+  isPlatformAdmin: boolean;
+  /** Gráficas ativas em que a pessoa trabalha. */
+  memberships: Membership[];
+  mfaRequired: boolean;
 };
 
 /**
- * Camada de acesso a dados: único ponto que lê a sessão e o perfil.
- * Usuário sem perfil ou desativado é tratado como deslogado.
+ * Camada de acesso a dados: o único ponto que lê a sessão, o perfil e os vínculos.
+ * Pessoa sem perfil é tratada como deslogada.
  */
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+export const getSession = cache(async (): Promise<Session | null> => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub;
-  if (!userId) return null;
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, role, active")
-    .eq("id", userId)
-    .maybeSingle();
+  const [profileResult, membersResult, platformResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, username, full_name, email")
+      .eq("id", claims.sub)
+      .maybeSingle(),
+    supabase
+      .from("organization_members")
+      .select("role, organizations(id, slug, name)")
+      .eq("user_id", claims.sub)
+      .eq("active", true),
+    supabase.from("platform_admins").select("user_id").eq("user_id", claims.sub).maybeSingle(),
+  ]);
 
-  if (!profile?.active) return null;
+  const profile = profileResult.data;
+  if (!profile) return null;
+
+  const rows = membersResult.data ?? [];
+  const isPlatformAdmin = Boolean(platformResult.data);
+  // Antes do MFA o banco esconde as gráficas em que a pessoa é admin; o perfil, não.
+  const memberships = rows.flatMap((row) =>
+    row.organizations && isAppRole(row.role)
+      ? [
+          {
+            organizationId: row.organizations.id,
+            slug: row.organizations.slug,
+            name: row.organizations.name,
+            role: row.role,
+          },
+        ]
+      : [],
+  );
+
   return {
     id: profile.id,
     username: profile.username,
     fullName: profile.full_name,
-    role: profile.role,
+    email: profile.email,
+    aal: claims.aal === "aal2" ? "aal2" : "aal1",
+    isPlatformAdmin,
+    memberships,
+    mfaRequired: requiresMfa({ isPlatformAdmin, roles: rows.map((row) => row.role) }),
   };
 });
 
+/** Logado e, se for admin, com o segundo fator confirmado. */
 export async function requireUser() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  return user;
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.mfaRequired && session.aal !== "aal2") redirect("/mfa");
+  return session;
 }
 
-/** Garante o perfil (lista vazia = qualquer usuário ativo); sem permissão, volta para o início. */
-export async function requireRole(allowed: readonly AppRole[]) {
-  const user = await requireUser();
-  if (allowed.length > 0 && !hasRole(user.role, allowed)) redirect("/inicio");
-  return user;
+export const getActiveMembership = cache(async (session: Session) => {
+  const preferred = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value;
+  return resolveActiveMembership(session.memberships, preferred);
+});
+
+/** Para as telas sem gráfica obrigatória (perfil, plataforma): sessão + gráfica ativa, se houver. */
+export async function getShellContext() {
+  const session = await requireUser();
+  const membership = await getActiveMembership(session);
+  return { session, membership };
+}
+
+/**
+ * Exige uma gráfica ativa e, opcionalmente, um dos perfis nela
+ * (lista vazia = qualquer membro). O admin da gráfica passa em todas.
+ */
+export async function requireOrg(allowed: readonly AppRole[] = []) {
+  const session = await requireUser();
+  const membership = await getActiveMembership(session);
+
+  if (!membership) {
+    if (session.memberships.length > 1) redirect("/selecionar-empresa");
+    redirect(session.isPlatformAdmin ? "/plataforma" : "/sem-acesso");
+  }
+  if (allowed.length > 0 && !hasRole(membership.role, allowed)) redirect("/inicio");
+
+  return { session, membership };
+}
+
+export async function requirePlatformAdmin() {
+  const session = await requireUser();
+  if (!session.isPlatformAdmin) redirect("/inicio");
+  return session;
 }

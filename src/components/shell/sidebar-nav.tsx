@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "cn";
-import type { AppRole } from "@/lib/auth/roles";
-import { isActivePath, navItemsFor } from "@/lib/navigation";
+import { isActivePath, navItemsFor, type NavContext } from "@/lib/navigation";
 
-export function SidebarNav({ role }: { role: AppRole }) {
+export function SidebarNav(context: NavContext) {
   const pathname = usePathname();
-  const items = navItemsFor(role);
+  const items = navItemsFor(context);
 
   return (
     <nav aria-label="Menu principal" className="flex flex-col gap-1">

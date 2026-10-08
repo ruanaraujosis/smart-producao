@@ -11,16 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireRole } from "@/lib/auth/dal";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { requireOrg } from "@/lib/auth/dal";
+import { exclusiveMembers } from "@/lib/auth/people";
+import { isAppRole, ROLE_LABELS } from "@/lib/auth/roles";
 import { formatDate, initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "cn";
 import {
-  CreateUserDialog,
-  EditUserDialog,
+  CreateMemberDialog,
+  EditMemberDialog,
+  ResetMfaDialog,
   ResetPasswordDialog,
-  type TeamUser,
+  type TeamMember,
 } from "./user-dialogs";
 
 export const metadata = { title: "Usuários" };
@@ -57,28 +59,39 @@ function StatusPill({ active }: { active: boolean }) {
 }
 
 async function UsersContent() {
-  const me = await requireRole(["admin"]);
+  const { session, membership } = await requireOrg(["admin"]);
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, role, active, created_at")
+    .from("organization_members")
+    .select("user_id, role, active, created_at, profiles(username, full_name, email)")
+    .eq("organization_id", membership.organizationId)
     .order("active", { ascending: false })
-    .order("full_name");
+    .order("created_at");
 
-  const users = (data ?? []).map((row) => ({
-    id: row.id,
-    username: row.username,
-    fullName: row.full_name,
-    role: row.role,
-    active: row.active,
-    createdAt: row.created_at,
-  }));
+  const rows = (data ?? []).filter((row) => row.profiles && isAppRole(row.role));
+  const exclusive = await exclusiveMembers(
+    membership.organizationId,
+    rows.map((row) => row.user_id),
+  );
+  const members: (TeamMember & { since: string })[] = rows
+    .map((row) => ({
+      userId: row.user_id,
+      username: row.profiles!.username,
+      fullName: row.profiles!.full_name,
+      email: row.profiles!.email,
+      role: row.role,
+      active: row.active,
+      exclusive: exclusive.has(row.user_id),
+      isSelf: row.user_id === session.id,
+      since: row.created_at,
+    }))
+    .sort((a, b) => Number(b.active) - Number(a.active) || a.fullName.localeCompare(b.fullName));
 
   const header = (
     <PageHeader
       title="Usuários"
-      description={`${users.filter((u) => u.active).length} ativos · login no formato nome.cargo`}
-      actions={<CreateUserDialog />}
+      description={`${membership.name} · ${members.filter((m) => m.active).length} ativos`}
+      actions={<CreateMemberDialog />}
     />
   );
 
@@ -86,16 +99,24 @@ async function UsersContent() {
     return (
       <>
         {header}
-        <p className="text-destructive">Não foi possível carregar os usuários.</p>
+        <p className="text-destructive">Não foi possível carregar a equipe.</p>
       </>
     );
   }
 
-  const actions = (user: TeamUser) => (
-    <div className="flex justify-end gap-1">
-      <ResetPasswordDialog user={user} />
-      <EditUserDialog user={user} isSelf={user.id === me.id} />
+  const actions = (member: TeamMember) => (
+    <div className="flex flex-wrap justify-end gap-1">
+      {member.role === "admin" && <ResetMfaDialog member={member} />}
+      <ResetPasswordDialog member={member} />
+      <EditMemberDialog member={member} />
     </div>
+  );
+
+  const identity = (member: TeamMember) => (
+    <>
+      <span className="font-mono">{member.username}</span>
+      {member.email && <span className="text-muted-foreground"> · {member.email}</span>}
+    </>
   );
 
   return (
@@ -104,26 +125,26 @@ async function UsersContent() {
 
       {/* Celular: cards */}
       <ul className="flex flex-col gap-3 md:hidden">
-        {users.map((user) => (
+        {members.map((member) => (
           <li
-            key={user.id}
+            key={member.userId}
             className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm"
           >
             <div className="flex items-center gap-3">
               <Avatar className="size-10">
                 <AvatarFallback className="bg-accent font-semibold text-accent-foreground">
-                  {initials(user.fullName)}
+                  {initials(member.fullName)}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{user.fullName}</p>
-                <p className="truncate font-mono text-xs text-muted-foreground">{user.username}</p>
+                <p className="truncate font-medium">{member.fullName}</p>
+                <p className="truncate text-xs">{identity(member)}</p>
               </div>
-              <StatusPill active={user.active} />
+              <StatusPill active={member.active} />
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm text-muted-foreground">{ROLE_LABELS[user.role]}</span>
-              {actions(user)}
+            <div className="flex flex-col gap-2">
+              <span className="text-sm text-muted-foreground">{ROLE_LABELS[member.role]}</span>
+              {actions(member)}
             </div>
           </li>
         ))}
@@ -134,8 +155,7 @@ async function UsersContent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-5">Nome</TableHead>
-              <TableHead>Usuário</TableHead>
+              <TableHead className="pl-5">Pessoa</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Desde</TableHead>
@@ -143,32 +163,32 @@ async function UsersContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id} className={cn(!user.active && "opacity-70")}>
+            {members.map((member) => (
+              <TableRow key={member.userId} className={cn(!member.active && "opacity-70")}>
                 <TableCell className="pl-5">
                   <div className="flex items-center gap-3">
                     <Avatar className="size-8">
                       <AvatarFallback className="bg-accent text-xs font-semibold text-accent-foreground">
-                        {initials(user.fullName)}
+                        {initials(member.fullName)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">
-                      {user.fullName}
-                      {user.id === me.id && (
-                        <span className="font-normal text-muted-foreground"> (você)</span>
-                      )}
-                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {member.fullName}
+                        {member.isSelf && (
+                          <span className="font-normal text-muted-foreground"> (você)</span>
+                        )}
+                      </p>
+                      <p className="truncate text-xs">{identity(member)}</p>
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-xs">{user.username}</TableCell>
-                <TableCell>{ROLE_LABELS[user.role]}</TableCell>
+                <TableCell>{ROLE_LABELS[member.role]}</TableCell>
                 <TableCell>
-                  <StatusPill active={user.active} />
+                  <StatusPill active={member.active} />
                 </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(user.createdAt)}
-                </TableCell>
-                <TableCell className="pr-5">{actions(user)}</TableCell>
+                <TableCell className="text-muted-foreground">{formatDate(member.since)}</TableCell>
+                <TableCell className="pr-5">{actions(member)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

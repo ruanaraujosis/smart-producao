@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { requireRole } from "@/lib/auth/dal";
+import { requireOrg } from "@/lib/auth/dal";
 import { findNavItem } from "@/lib/navigation";
 import { ComingSoon } from "./coming-soon";
 import { PageHeader } from "./page-header";
@@ -21,6 +21,6 @@ export function ModulePlaceholder({ href, description }: { href: string; descrip
 
 async function Guarded({ href }: { href: string }) {
   const item = findNavItem(href)!;
-  await requireRole(item.roles);
+  await requireOrg(item.roles);
   return <ComingSoon title={item.label} phase={item.phase} />;
 }

@@ -29,15 +29,18 @@ Requisitos: Node 22+ e um projeto no [Supabase](https://supabase.com) (o plano g
    npm run db:push
    ```
 
-4. **Desative o cadastro público** no painel do Supabase (_Authentication → Sign In / Providers → Allow new users to sign up_: desligado). Os usuários são criados só pelo administrador.
+4. **Configure o Auth no painel do Supabase:**
+   - _Authentication → Sign In / Providers_: desligue **Allow new users to sign up**. As contas são criadas só pelos administradores.
+   - _Authentication → URL Configuration_: em **Site URL**, coloque `http://localhost:3000`; em **Redirect URLs**, adicione `http://localhost:3000/auth/confirm` (link de "Esqueci minha senha").
+   - _Authentication → Multi-Factor_: confirme que **TOTP (App Authenticator)** está habilitado.
 
-5. **Crie o primeiro administrador.** Preencha `ADMIN_USERNAME` (ex.: `ruan.diretor`), `ADMIN_FULL_NAME` e `ADMIN_PASSWORD` no `.env.local` e rode:
+5. **Crie a primeira gráfica e o SuperAdmin.** Preencha no `.env.local` `ORG_NAME` (ex.: `Smart Gráfica`), `ORG_SLUG` (ex.: `smart`), `ADMIN_FULL_NAME`, `ADMIN_USERNAME` (ex.: `ruan.diretor`), `ADMIN_EMAIL` (opcional, mas recomendado) e `ADMIN_PASSWORD`. Depois rode:
 
    ```bash
-   npm run admin:criar
+   npm run plataforma:iniciar
    ```
 
-   Depois **apague `ADMIN_PASSWORD`** do `.env.local`.
+   Em seguida **apague o valor de `ADMIN_PASSWORD`** do `.env.local`. No primeiro login, o sistema pede para configurar o app autenticador (MFA).
 
 6. **Suba o servidor** e acesse <http://localhost:3000>:
 
@@ -47,17 +50,17 @@ Requisitos: Node 22+ e um projeto no [Supabase](https://supabase.com) (o plano g
 
 ### Scripts
 
-| Script                                  | O que faz                                                       |
-| --------------------------------------- | --------------------------------------------------------------- |
-| `npm run dev`                           | Servidor de desenvolvimento                                     |
-| `npm run build` / `start`               | Build e servidor de produção                                    |
-| `npm run lint` / `typecheck` / `format` | ESLint, TypeScript e Prettier                                   |
-| `npm test`                              | Testes unitários (Vitest)                                       |
-| `npm run test:e2e`                      | Testes de ponta a ponta (Playwright)                            |
-| `npm run db:new <nome>`                 | Cria uma migration nova em `supabase/migrations/`               |
-| `npm run db:push`                       | Aplica as migrations no projeto Supabase vinculado              |
-| `npm run db:types`                      | Regenera `src/lib/supabase/database.types.ts` a partir do banco |
-| `npm run admin:criar`                   | Cria/reativa o administrador definido no `.env.local`           |
+| Script                                  | O que faz                                                        |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `npm run dev`                           | Servidor de desenvolvimento                                      |
+| `npm run build` / `start`               | Build e servidor de produção                                     |
+| `npm run lint` / `typecheck` / `format` | ESLint, TypeScript e Prettier                                    |
+| `npm test`                              | Testes unitários (Vitest)                                        |
+| `npm run test:e2e`                      | Testes de ponta a ponta (Playwright)                             |
+| `npm run db:new <nome>`                 | Cria uma migration nova em `supabase/migrations/`                |
+| `npm run db:push`                       | Aplica as migrations no projeto Supabase vinculado               |
+| `npm run db:types`                      | Regenera `src/lib/supabase/database.types.ts` a partir do banco  |
+| `npm run plataforma:iniciar`            | Cria a primeira gráfica e o SuperAdmin definidos no `.env.local` |
 
 ## Arquitetura
 
@@ -65,7 +68,8 @@ Requisitos: Node 22+ e um projeto no [Supabase](https://supabase.com) (o plano g
 src/
   app/
     (app)/            áreas logadas (layout com header, sidebar e navegação inferior)
-    login/            tela de login (usuário nome.cargo + senha)
+    (auth)/           MFA, escolha de gráfica, recuperação de senha
+    login/            tela de login (e-mail ou usuário + senha)
     manifest.ts       PWA instalável
   components/
     ui/               componentes base (shadcn/ui)
@@ -81,7 +85,25 @@ supabase/migrations/  schema versionado (nunca alterar o banco manualmente)
 
 **Segurança em camadas:** o `proxy.ts` faz só a checagem otimista de login. Quem decide o acesso é a DAL (`src/lib/auth/dal.ts`), chamada em cada página e Server Action, e, no fim, o **RLS** do Postgres. A chave secreta do Supabase só é usada no servidor e só para o que o RLS não cobre (criar usuários no Auth).
 
-**Login `nome.cargo`:** o Supabase Auth exige e-mail, então `joao.producao` vira internamente `joao.producao@usuarios.smart.local`. Esse e-mail não é exibido nem recebe mensagens.
+### Multi-empresa (SaaS)
+
+- **`organizations`**: cada gráfica cliente (tenant). **`organization_members`**: quem trabalha em qual gráfica e com qual perfil. Uma pessoa pode estar em várias gráficas, com perfis diferentes em cada uma.
+- **Login único:** e-mail **ou** usuário (`nome.cargo`, único na plataforma) + senha. Quem tem uma gráfica entra direto; quem tem várias escolhe em _Escolha a gráfica_ e pode trocar pelo header.
+- **Gráfica ativa:** fica num cookie httpOnly do aparelho e serve só para a interface. Quem garante o isolamento é o RLS, que confere em cada linha se a pessoa é membro da `organization_id` daquele dado e qual o perfil dela ali.
+- **SuperAdmin** (`platform_admins`): gerencia gráficas e contas em `/plataforma`, mas não lê dados operacionais das gráficas.
+- **MFA (app autenticador):** obrigatório para quem é admin de alguma gráfica ou SuperAdmin. O banco só concede as permissões de admin com sessão `aal2`.
+- **Contas sem e-mail:** o Supabase Auth exige e-mail, então `joao.producao` vira internamente `joao.producao@usuarios.smart.local`. Esse e-mail não é exibido nem recebe mensagens, e essas pessoas recuperam a senha com o admin da gráfica.
+
+**Toda tabela de negócio nova** precisa de `organization_id uuid not null references organizations` e de políticas como:
+
+```sql
+create policy "Membros leem" on public.pedidos for select to authenticated
+  using ((select private.is_member(organization_id)));
+create policy "Atendimento cria" on public.pedidos for insert to authenticated
+  with check ((select private.has_org_role(organization_id, 'atendimento')));
+```
+
+Na aplicação, use `requireOrg([...perfis])` (`src/lib/auth/dal.ts`) e filtre as consultas pela `membership.organizationId`.
 
 **Auditoria:** a tabela `audit_log` registra quem alterou o quê e quando. Para auditar uma tabela nova:
 
