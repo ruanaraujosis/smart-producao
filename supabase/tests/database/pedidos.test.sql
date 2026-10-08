@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(31);
+select plan(37);
 
 -- -----------------------------------------------------------------------------
 -- Dados de teste (como postgres, sem login: os guardas deixam passar)
@@ -255,6 +255,34 @@ select results_eq(
 
 select is((select count(*) from public.order_events where order_id = '50000000-0000-0000-0000-000000000002'), 3::bigint,
   'linha do tempo registra criação e as duas mudanças de status');
+
+-- -----------------------------------------------------------------------------
+-- Gravação atômica (create_order / update_order)
+-- -----------------------------------------------------------------------------
+set local role authenticated;
+
+select lives_ok(
+  $$ select public.create_order('10000000-0000-0000-0000-00000000000a', 'novo',
+       '{"customer_name":"Cliente Três","discount":"5","shipping":"0","channel":"whatsapp"}',
+       '[{"variant_id":"40000000-0000-0000-0000-000000000001","description":"Bloco","quantity":"2","unit_price":"10"}]') $$,
+  'create_order grava pedido e itens juntos');
+select is((select total from public.orders where customer_name = 'Cliente Três'),
+  15.00::numeric, 'desconto entra depois dos itens (2 × 10 − 5)');
+
+select throws_ok(
+  $$ select public.create_order('10000000-0000-0000-0000-00000000000a', 'novo',
+       '{"customer_name":"Sem Itens"}', '[]') $$,
+  '22023', 'Inclua pelo menos um item.', 'pedido sem itens é recusado');
+select is((select count(*) from public.orders where customer_name = 'Sem Itens'),
+  0::bigint, 'nada fica gravado quando a criação falha');
+
+select lives_ok(
+  $$ select public.update_order((select id from public.orders where customer_name = 'Cliente Três'),
+       '{"customer_name":"Cliente Três","discount":"0","channel":"whatsapp"}',
+       '[{"variant_id":"40000000-0000-0000-0000-000000000001","description":"Bloco","quantity":"3","unit_price":"10"}]') $$,
+  'update_order troca os itens');
+select is((select total from public.orders where customer_name = 'Cliente Três'),
+  30.00::numeric, 'total recalculado após a edição');
 
 select * from finish();
 rollback;

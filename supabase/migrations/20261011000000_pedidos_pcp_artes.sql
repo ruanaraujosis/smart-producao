@@ -284,9 +284,15 @@ begin
   if not exists (select 1 from public.orders o where o.id = new.order_id and o.organization_id = new.organization_id) then
     raise exception 'Pedido de outra gráfica.' using errcode = '42501';
   end if;
-  if tg_table_name = 'order_items' and new.variant_id is not null
-     and not exists (select 1 from public.product_variants v where v.id = new.variant_id and v.organization_id = new.organization_id) then
-    raise exception 'Variação de outra gráfica.' using errcode = '42501';
+  -- if aninhado: só order_items tem variant_id (o PL/pgSQL não garante curto-circuito no "and").
+  if tg_table_name = 'order_items' then
+    if (to_jsonb(new) ->> 'variant_id') is not null
+       and not exists (
+         select 1 from public.product_variants v
+         where v.id = (to_jsonb(new) ->> 'variant_id')::uuid and v.organization_id = new.organization_id
+       ) then
+      raise exception 'Variação de outra gráfica.' using errcode = '42501';
+    end if;
   end if;
   return new;
 end;
@@ -660,6 +666,134 @@ $$;
 create trigger orders_after_write
   after insert or update of status on public.orders
   for each row execute function private.orders_after_write();
+
+-- -----------------------------------------------------------------------------
+-- Gravação do pedido com os itens numa transação só.
+-- security invoker: roda com as permissões de quem chama (o RLS vale).
+-- -----------------------------------------------------------------------------
+
+-- Sincroniza os itens: atualiza os que têm id, inclui os novos e remove os que saíram.
+create or replace function public.save_order_items(p_order uuid, p_items jsonb)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_org uuid;
+  v_keep uuid[];
+  v_item jsonb;
+  v_pos smallint := 0;
+  v_id uuid;
+begin
+  select organization_id into v_org from public.orders where id = p_order;
+  if v_org is null then
+    raise exception 'Pedido não encontrado.' using errcode = 'P0002';
+  end if;
+  if jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) = 0 then
+    raise exception 'Inclua pelo menos um item.' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_items) > 100 then
+    raise exception 'Máximo de 100 itens por pedido.' using errcode = '22023';
+  end if;
+
+  select coalesce(array_agg((e ->> 'id')::uuid), '{}')
+  into v_keep
+  from jsonb_array_elements(p_items) e
+  where nullif(e ->> 'id', '') is not null;
+
+  delete from public.order_items where order_id = p_order and not (id = any (v_keep));
+
+  for v_item in select value from jsonb_array_elements(p_items) loop
+    v_pos := v_pos + 1;
+    v_id := nullif(v_item ->> 'id', '')::uuid;
+    if v_id is null then
+      insert into public.order_items (organization_id, order_id, variant_id, description, quantity, unit_price, position)
+      values (v_org, p_order, nullif(v_item ->> 'variant_id', '')::uuid, v_item ->> 'description',
+              (v_item ->> 'quantity')::numeric, (v_item ->> 'unit_price')::numeric, v_pos);
+    else
+      update public.order_items i
+      set variant_id = nullif(v_item ->> 'variant_id', '')::uuid,
+          description = v_item ->> 'description',
+          quantity = (v_item ->> 'quantity')::numeric,
+          unit_price = (v_item ->> 'unit_price')::numeric,
+          position = v_pos
+      where i.id = v_id and i.order_id = p_order
+        and (i.variant_id is distinct from nullif(v_item ->> 'variant_id', '')::uuid
+          or i.description is distinct from v_item ->> 'description'
+          or i.quantity is distinct from (v_item ->> 'quantity')::numeric
+          or i.unit_price is distinct from (v_item ->> 'unit_price')::numeric
+          or i.position is distinct from v_pos);
+    end if;
+  end loop;
+end;
+$$;
+
+-- Campos editáveis do cabeçalho (o desconto entra por último, depois dos itens).
+create or replace function private.apply_order_fields(p_order uuid, p_fields jsonb)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  update public.orders
+  set channel = coalesce((p_fields ->> 'channel')::public.sales_channel, channel),
+      customer_id = nullif(p_fields ->> 'customer_id', '')::uuid,
+      customer_name = p_fields ->> 'customer_name',
+      customer_phone = nullif(p_fields ->> 'customer_phone', ''),
+      needs_art = coalesce((p_fields ->> 'needs_art')::boolean, needs_art),
+      due_date = nullif(p_fields ->> 'due_date', '')::date,
+      payment_method_id = nullif(p_fields ->> 'payment_method_id', '')::uuid,
+      shipping = coalesce((p_fields ->> 'shipping')::numeric, 0),
+      discount = coalesce((p_fields ->> 'discount')::numeric, 0),
+      notes = nullif(p_fields ->> 'notes', '')
+  where id = p_order
+$$;
+
+create or replace function public.create_order(p_org uuid, p_status public.order_status, p_fields jsonb, p_items jsonb)
+returns uuid
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  insert into public.orders (organization_id, status, customer_name)
+  values (p_org, p_status, p_fields ->> 'customer_name')
+  returning id into v_id;
+
+  perform public.save_order_items(v_id, p_items);
+  perform private.apply_order_fields(v_id, p_fields);
+  return v_id;
+end;
+$$;
+
+create or replace function public.update_order(p_order uuid, p_fields jsonb, p_items jsonb)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  -- Zera o desconto antes de mexer nos itens para o total nunca ficar negativo no meio do caminho.
+  update public.orders set discount = 0 where id = p_order;
+  if not found then
+    raise exception 'Pedido não encontrado.' using errcode = 'P0002';
+  end if;
+  perform public.save_order_items(p_order, p_items);
+  perform private.apply_order_fields(p_order, p_fields);
+end;
+$$;
+
+revoke all on function public.save_order_items(uuid, jsonb) from public, anon;
+revoke all on function public.create_order(uuid, public.order_status, jsonb, jsonb) from public, anon;
+revoke all on function public.update_order(uuid, jsonb, jsonb) from public, anon;
+revoke all on function private.apply_order_fields(uuid, jsonb) from public;
+grant execute on function public.save_order_items(uuid, jsonb) to authenticated;
+grant execute on function public.create_order(uuid, public.order_status, jsonb, jsonb) to authenticated;
+grant execute on function public.update_order(uuid, jsonb, jsonb) to authenticated;
+grant execute on function private.apply_order_fields(uuid, jsonb) to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Artes: regras
