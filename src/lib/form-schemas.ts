@@ -38,36 +38,34 @@ export function parseDecimal(v: unknown): number | undefined {
   return Number.isFinite(n) ? n : Number.NaN;
 }
 
-export const decimal = (opts: {
-  label: string;
-  min?: number;
-  max?: number;
-  optional?: boolean;
-}) => {
-  const base = z.number({ error: `${opts.label}: informe um número.` });
-  let num = base;
-  if (opts.min !== undefined) num = num.min(opts.min, `${opts.label}: mínimo ${opts.min}.`);
-  if (opts.max !== undefined) num = num.max(opts.max, `${opts.label}: máximo ${opts.max}.`);
-  return opts.optional
-    ? z.preprocess((v) => parseDecimal(v) ?? null, num.nullable())
-    : z.preprocess((v) => parseDecimal(v), num);
-};
+type NumberOpts = { label: string; min?: number; max?: number };
 
-export const integer = (opts: {
-  label: string;
-  min?: number;
-  max?: number;
-  optional?: boolean;
-}) => {
-  let num = z
-    .number({ error: `${opts.label}: informe um número inteiro.` })
-    .int(`${opts.label}: use um número inteiro.`);
+function numberSchema(opts: NumberOpts, int: boolean) {
+  let num = z.number({ error: `${opts.label}: informe um número${int ? " inteiro" : ""}.` });
+  if (int) num = num.int(`${opts.label}: use um número inteiro.`);
   if (opts.min !== undefined) num = num.min(opts.min, `${opts.label}: mínimo ${opts.min}.`);
   if (opts.max !== undefined) num = num.max(opts.max, `${opts.label}: máximo ${opts.max}.`);
+  return num;
+}
+
+/** Número obrigatório (aceita "1.234,56"). Com `optional: true`, vazio vira null. */
+export function decimal(opts: NumberOpts & { optional: true }): z.ZodType<number | null>;
+export function decimal(opts: NumberOpts & { optional?: false }): z.ZodType<number>;
+export function decimal(opts: NumberOpts & { optional?: boolean }): z.ZodType<number | null> {
+  const num = numberSchema(opts, false);
   return opts.optional
-    ? z.preprocess((v) => parseDecimal(v) ?? null, num.nullable())
-    : z.preprocess((v) => parseDecimal(v), num);
-};
+    ? (z.preprocess((v) => parseDecimal(v) ?? null, num.nullable()) as z.ZodType<number | null>)
+    : (z.preprocess((v) => parseDecimal(v), num) as z.ZodType<number>);
+}
+
+export function integer(opts: NumberOpts & { optional: true }): z.ZodType<number | null>;
+export function integer(opts: NumberOpts & { optional?: false }): z.ZodType<number>;
+export function integer(opts: NumberOpts & { optional?: boolean }): z.ZodType<number | null> {
+  const num = numberSchema(opts, true);
+  return opts.optional
+    ? (z.preprocess((v) => parseDecimal(v) ?? null, num.nullable()) as z.ZodType<number | null>)
+    : (z.preprocess((v) => parseDecimal(v), num) as z.ZodType<number>);
+}
 
 export const optionalEmail = z.preprocess((v) => {
   const t = trim(v);

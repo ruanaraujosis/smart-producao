@@ -23,11 +23,14 @@ describe("navItemsFor", () => {
   });
 
   it("mostra só os módulos liberados no perfil", () => {
+    // Quem vê pedidos também vê Cadastros (para consultar os clientes).
     expect(hrefs(["pedidos.ver", "artes.ver", "artes.gerenciar"])).toEqual([
       "/inicio",
       "/pedidos",
       "/artes",
+      "/cadastros",
     ]);
+    expect(hrefs(["artes.ver"])).toEqual(["/inicio", "/artes"]);
   });
 
   it("Financeiro aparece com qualquer permissão financeira", () => {
