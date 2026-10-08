@@ -42,7 +42,11 @@ select ok(private.is_member('10000000-0000-0000-0000-0000000000c0'),
   'sem a exigência, o perfil entra sem MFA');
 
 reset role;
+-- Preparação sem login (o guarda impede quem usa o perfil de alterá-lo).
+set local "request.jwt.claims" to '';
 update public.organization_roles set require_mfa = true where id = '20000000-0000-0000-0000-0000000000c1';
+set local "request.jwt.claims" to
+  '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal1"}';
 set local role authenticated;
 select ok(not private.is_member('10000000-0000-0000-0000-0000000000c0'),
   'com a exigência ligada, sem MFA não entra');
