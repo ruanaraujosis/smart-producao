@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/kit/page-header";
@@ -19,9 +19,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "cn";
 import {
   CreateMemberDialog,
-  EditMemberDialog,
-  ResetMfaDialog,
-  ResetPasswordDialog,
+  MemberActions,
   type RoleOption,
   type TeamMember,
 } from "./user-dialogs";
@@ -134,99 +132,100 @@ async function UsersContent() {
     );
   }
 
-  // Quem só tem "equipe.ver" vê a lista, sem os botões de ação.
+  // Quem só tem "equipe.ver" vê a lista, sem o menu de ações.
   const actions = (member: TeamMember) =>
-    canManage && (
-      <div className="flex flex-wrap justify-end gap-1">
-        {member.requiresMfa && <ResetMfaDialog member={member} />}
-        <ResetPasswordDialog member={member} />
-        <EditMemberDialog member={member} roles={roles} />
-      </div>
-    );
+    canManage ? <MemberActions member={member} roles={roles} /> : null;
 
-  const identity = (member: TeamMember) => (
-    <>
-      <span className="font-mono">{member.username}</span>
-      {member.email && <span className="text-muted-foreground"> · {member.email}</span>}
-    </>
+  const person = (member: TeamMember, size: "sm" | "md") => (
+    <div className="flex min-w-0 items-center gap-3">
+      <Avatar className={size === "md" ? "size-10" : "size-9"}>
+        <AvatarFallback className="bg-accent text-xs font-semibold text-accent-foreground">
+          {initials(member.fullName)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate font-medium">
+          {member.fullName}
+          {member.isSelf && <span className="font-normal text-muted-foreground"> (você)</span>}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          <span className="font-mono">{member.username}</span>
+          {member.email && <> · {member.email}</>}
+        </p>
+      </div>
+    </div>
   );
 
   return (
     <>
       {header}
 
-      {/* Celular: cards */}
-      <ul className="flex flex-col gap-3 md:hidden">
+      {/* Celular e tablet (e desktop com menu lateral estreito): cards */}
+      <ul className="grid gap-3 sm:grid-cols-2 xl:hidden">
         {members.map((member) => (
           <li
             key={member.userId}
-            className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm"
+            className={cn(
+              "flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm",
+              !member.active && "opacity-70",
+            )}
           >
-            <div className="flex items-center gap-3">
-              <Avatar className="size-10">
-                <AvatarFallback className="bg-accent font-semibold text-accent-foreground">
-                  {initials(member.fullName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{member.fullName}</p>
-                <p className="truncate text-xs">{identity(member)}</p>
-              </div>
-              <StatusPill active={member.active} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">{member.roleName}</span>
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">{person(member, "md")}</div>
               {actions(member)}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <RolePill name={member.roleName} requiresMfa={member.requiresMfa} />
+              <StatusPill active={member.active} />
+              <span className="ml-auto text-xs text-muted-foreground">
+                desde {formatDate(member.since)}
+              </span>
             </div>
           </li>
         ))}
       </ul>
 
-      {/* Desktop/tablet: tabela */}
-      <div className="hidden overflow-hidden rounded-2xl border bg-card shadow-sm md:block">
-        <Table>
+      {/* Telas largas: tabela */}
+      <div className="hidden overflow-hidden rounded-2xl border bg-card shadow-sm xl:block">
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-5">Pessoa</TableHead>
-              <TableHead>Perfil</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Desde</TableHead>
-              <TableHead className="pr-5 text-right">Ações</TableHead>
+              <TableHead className="w-[42%] pl-5">Pessoa</TableHead>
+              <TableHead className="w-[24%]">Perfil</TableHead>
+              <TableHead className="w-[14%]">Status</TableHead>
+              <TableHead className="w-[12%]">Desde</TableHead>
+              <TableHead className="w-[8%] pr-5 text-right">
+                <span className="sr-only">Ações</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.map((member) => (
               <TableRow key={member.userId} className={cn(!member.active && "opacity-70")}>
-                <TableCell className="pl-5">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-8">
-                      <AvatarFallback className="bg-accent text-xs font-semibold text-accent-foreground">
-                        {initials(member.fullName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="font-medium">
-                        {member.fullName}
-                        {member.isSelf && (
-                          <span className="font-normal text-muted-foreground"> (você)</span>
-                        )}
-                      </p>
-                      <p className="truncate text-xs">{identity(member)}</p>
-                    </div>
-                  </div>
+                <TableCell className="pl-5">{person(member, "sm")}</TableCell>
+                <TableCell>
+                  <RolePill name={member.roleName} requiresMfa={member.requiresMfa} />
                 </TableCell>
-                <TableCell>{member.roleName}</TableCell>
                 <TableCell>
                   <StatusPill active={member.active} />
                 </TableCell>
                 <TableCell className="text-muted-foreground">{formatDate(member.since)}</TableCell>
-                <TableCell className="pr-5">{actions(member)}</TableCell>
+                <TableCell className="pr-5 text-right">{actions(member)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </>
+  );
+}
+
+function RolePill({ name, requiresMfa }: { name: string; requiresMfa: boolean }) {
+  return (
+    <span className="inline-flex h-6 max-w-full items-center gap-1 rounded-full bg-secondary px-2.5 text-xs font-medium text-secondary-foreground">
+      {requiresMfa && <ShieldCheck className="size-3.5 shrink-0" aria-label="Exige MFA" />}
+      <span className="truncate">{name}</span>
+    </span>
   );
 }
 

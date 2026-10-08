@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound, Loader2, Pencil, ShieldOff, UserPlus } from "lucide-react";
+import { KeyRound, Loader2, MoreHorizontal, Pencil, ShieldOff, UserPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Controller, useForm, useWatch, type FieldError as RHFFieldError } from "react-hook-form";
 import { toast } from "sonner";
@@ -16,6 +16,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -281,14 +287,18 @@ export function CreateMemberDialog({ roles }: { roles: readonly RoleOption[] }) 
   );
 }
 
+/** Abertos pelo menu de ações da pessoa (MemberActions). */
+type DialogControl = { open: boolean; onOpenChange: (open: boolean) => void };
+
 export function EditMemberDialog({
   member,
   roles,
+  open,
+  onOpenChange: setOpen,
 }: {
   member: TeamMember;
   roles: readonly RoleOption[];
-}) {
-  const [open, setOpen] = useState(false);
+} & DialogControl) {
   const defaults = {
     userId: member.userId,
     fullName: member.fullName,
@@ -322,12 +332,6 @@ export function EditMemberDialog({
         if (next) form.reset(defaults);
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" aria-label={`Editar ${member.fullName}`}>
-          <Pencil />
-          Editar
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Editar pessoa</DialogTitle>
@@ -416,8 +420,11 @@ export function EditMemberDialog({
   );
 }
 
-export function ResetPasswordDialog({ member }: { member: TeamMember }) {
-  const [open, setOpen] = useState(false);
+export function ResetPasswordDialog({
+  member,
+  open,
+  onOpenChange: setOpen,
+}: { member: TeamMember } & DialogControl) {
   const form = useForm({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { userId: member.userId, password: "", confirmPassword: "" },
@@ -431,18 +438,6 @@ export function ResetPasswordDialog({ member }: { member: TeamMember }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={!member.exclusive}
-          title={member.exclusive ? undefined : NOT_EXCLUSIVE_HINT}
-          aria-label={`Redefinir senha de ${member.fullName}`}
-        >
-          <KeyRound />
-          Senha
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Redefinir senha</DialogTitle>
@@ -487,31 +482,16 @@ export function ResetPasswordDialog({ member }: { member: TeamMember }) {
   );
 }
 
-/** Só aparece para admins: são os únicos com MFA obrigatório. */
-export function ResetMfaDialog({ member }: { member: TeamMember }) {
-  const [open, setOpen] = useState(false);
+/** Só faz sentido para perfis que exigem MFA. */
+export function ResetMfaDialog({
+  member,
+  open,
+  onOpenChange: setOpen,
+}: { member: TeamMember } & DialogControl) {
   const { pending, run } = useSubmit(() => setOpen(false));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={!member.exclusive || member.isSelf}
-          title={
-            member.isSelf
-              ? "Peça a outro administrador."
-              : member.exclusive
-                ? undefined
-                : NOT_EXCLUSIVE_HINT
-          }
-          aria-label={`Redefinir MFA de ${member.fullName}`}
-        >
-          <ShieldOff />
-          MFA
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Redefinir verificação em duas etapas?</DialogTitle>
@@ -535,5 +515,65 @@ export function ResetMfaDialog({ member }: { member: TeamMember }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Menu "⋯" com as ações sobre uma pessoa da equipe; abre os diálogos acima. */
+export function MemberActions({
+  member,
+  roles,
+}: {
+  member: TeamMember;
+  roles: readonly RoleOption[];
+}) {
+  const [dialog, setDialog] = useState<"edit" | "password" | "mfa" | null>(null);
+  const close = (open: boolean) => !open && setDialog(null);
+  const mfaHint = member.isSelf
+    ? "Peça a outro administrador"
+    : member.exclusive
+      ? undefined
+      : NOT_EXCLUSIVE_HINT;
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label={`Ações para ${member.fullName}`}>
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuItem onSelect={() => setDialog("edit")}>
+            <Pencil />
+            Editar nome, perfil e acesso
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!member.exclusive} onSelect={() => setDialog("password")}>
+            <KeyRound />
+            <span className="flex flex-col">
+              Redefinir senha
+              {!member.exclusive && (
+                <span className="text-xs text-muted-foreground">{NOT_EXCLUSIVE_HINT}</span>
+              )}
+            </span>
+          </DropdownMenuItem>
+          {member.requiresMfa && (
+            <DropdownMenuItem disabled={Boolean(mfaHint)} onSelect={() => setDialog("mfa")}>
+              <ShieldOff />
+              <span className="flex flex-col">
+                Redefinir MFA
+                {mfaHint && <span className="text-xs text-muted-foreground">{mfaHint}</span>}
+              </span>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Montados só quando abertos: o formulário sempre começa com os dados atuais. */}
+      {dialog === "edit" && (
+        <EditMemberDialog member={member} roles={roles} open onOpenChange={close} />
+      )}
+      {dialog === "password" && <ResetPasswordDialog member={member} open onOpenChange={close} />}
+      {dialog === "mfa" && <ResetMfaDialog member={member} open onOpenChange={close} />}
+    </>
   );
 }
