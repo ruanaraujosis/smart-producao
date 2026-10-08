@@ -19,7 +19,8 @@
     "plataforma:iniciar": "tsx --env-file=.env.local scripts/iniciar-plataforma.ts",
     "env:verificar": "node scripts/verificar-env.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "segredos:verificar": "node scripts/verificar-segredos.mjs"
+    "segredos:verificar": "node scripts/verificar-segredos.mjs",
+    "plataforma:remover-grafica": "tsx --env-file=.env.local scripts/remover-grafica.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
