@@ -9,13 +9,14 @@
 -- -----------------------------------------------------------------------------
 -- Remove o modelo de empresa única
 -- -----------------------------------------------------------------------------
+-- Políticas antes das funções que elas usam (o Postgres não deixa apagar função em uso).
+drop policy if exists "Admin lê auditoria" on public.audit_log;
 drop table if exists public.profiles cascade;
 drop function if exists private.guard_profile_update();
 drop function if exists private.has_role(public.app_role[]);
 drop function if exists private.is_admin();
 drop function if exists private.is_active_user();
 drop function if exists private.current_app_role();
-drop policy if exists "Admin lê auditoria" on public.audit_log;
 
 -- -----------------------------------------------------------------------------
 -- Gráficas (tenants)
