@@ -105,6 +105,18 @@ async function testConnection(vars) {
       `  ${res?.ok ? "✔" : "✖"} tabela ${table}${res?.ok ? "" : " (rode `npx supabase db push`)"}`,
     );
   }
+
+  // Isolamento: sem login, nenhuma tabela pode ser lida (RLS + revoke para anon).
+  for (const table of ["organizations", "profiles", "organization_members", "audit_log"]) {
+    const res = await fetch(`${url}/rest/v1/${table}?select=*&limit=1`, {
+      headers: { apikey: vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+    }).catch(() => null);
+    const blocked = res && (res.status === 401 || res.status === 403);
+    if (!blocked) failures++;
+    console.log(
+      `  ${blocked ? "✔" : "✖"} sem login não lê ${table}${blocked ? "" : ` (HTTP ${res?.status ?? "erro"} — revise o RLS!)`}`,
+    );
+  }
   return failures;
 }
 
