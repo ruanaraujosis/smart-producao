@@ -8,6 +8,8 @@ const PUBLIC_PATHS = [
   "/login",
   "/esqueci-senha",
   "/auth/confirm",
+  // Link do cliente para enviar arte e aprovar a prova (token no caminho).
+  "/a",
   "/manifest.webmanifest",
   "/icon",
   "/apple-icon",

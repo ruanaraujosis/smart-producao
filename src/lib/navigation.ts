@@ -33,7 +33,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: ShoppingBag,
     scope: "org",
     permission: "pedidos.ver",
-    comingSoon: true,
   },
   {
     href: "/artes",
@@ -41,7 +40,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: Palette,
     scope: "org",
     permission: "artes.ver",
-    comingSoon: true,
   },
   {
     href: "/pcp",
@@ -49,7 +47,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: SquareKanban,
     scope: "org",
     permission: "pcp.ver",
-    comingSoon: true,
   },
   {
     href: "/estoque",
