@@ -1,6 +1,6 @@
-# Smart Produção
+# graphicX
 
-Sistema de gestão da Smart Gráfica: pedidos, aprovação de artes, produção (PCP), estoque, financeiro, NF-e, dashboard para TV e integração com marketplaces (Shopee, Magalu, TikTok Shop).
+Plataforma SaaS de gestão para gráficas: pedidos, aprovação de artes, produção (PCP), estoque, financeiro, NF-e, dashboard para TV e integração com marketplaces (Shopee, Magalu, TikTok Shop). Multi-empresa: cada gráfica cliente (ex.: Smart Gráfica) tem seus dados isolados.
 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 + shadcn/ui · Supabase · Vercel
 

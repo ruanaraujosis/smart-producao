@@ -4,7 +4,7 @@ import { cn } from "cn";
 
 const TONES = {
   primary: "bg-accent text-accent-foreground",
-  pink: "bg-brand-pink/12 text-brand-pink",
+  teal: "bg-secondary text-secondary-foreground",
   success: "bg-success-soft text-success",
   warning: "bg-warning-soft text-warning",
   info: "bg-info-soft text-info",

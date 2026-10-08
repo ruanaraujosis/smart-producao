@@ -42,17 +42,17 @@ export function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex min-h-11 items-center gap-2.5 rounded-xl px-1.5 outline-none hover:bg-brand-header-foreground/10 focus-visible:ring-3 focus-visible:ring-brand-pink/60 md:px-2"
+        className="flex min-h-11 items-center gap-2.5 rounded-xl px-1.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:px-2"
         aria-label={`Menu de ${fullName}`}
       >
         <Avatar className="size-9">
-          <AvatarFallback className="bg-brand-pink text-sm font-semibold text-white">
+          <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground">
             {initials(fullName)}
           </AvatarFallback>
         </Avatar>
         <span className="hidden flex-col text-left leading-tight md:flex">
           <span className="text-sm font-semibold">{fullName}</span>
-          <span className="text-xs text-white/70">{subtitle}</span>
+          <span className="text-xs text-brand-header-muted">{subtitle}</span>
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

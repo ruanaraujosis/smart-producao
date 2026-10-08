@@ -26,7 +26,7 @@ const SECTIONS: {
     title: "Integrações",
     description: "Lojas da Shopee, Magalu e TikTok Shop, e saúde das sincronizações.",
     icon: PlugZap,
-    tone: "pink",
+    tone: "teal",
     phase: 5,
   },
   {

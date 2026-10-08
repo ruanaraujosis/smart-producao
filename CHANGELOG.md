@@ -9,7 +9,7 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 #### Adicionado
 
 - Projeto Next.js 16 (App Router, Cache Components) com TypeScript estrito, Tailwind CSS 4 e shadcn/ui.
-- Design system com a paleta da Smart Gráfica, fonte Poppins e tema **claro, escuro e automático**.
+- Marca da plataforma **graphicX**: logo, ícones do PWA e design system (laranja, azul-marinho, verde-azulado, azul-céu, roxo e verde-limão), fonte Poppins e tema **claro, escuro e automático**, com contraste AA conferido.
 - **Multi-empresa (SaaS)**: gráficas (tenants), vínculo pessoa↔gráfica com perfil por gráfica, isolamento por RLS.
 - Login único por **e-mail ou usuário** `nome.cargo`, seletor de gráfica para quem trabalha em mais de uma e troca pelo header.
 - **MFA obrigatório** (app autenticador) para admins e SuperAdmin, exigido também pelo banco (`aal2`).

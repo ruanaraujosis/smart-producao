@@ -31,7 +31,7 @@ const ROADMAP = [
 ];
 
 const CURRENT_PHASE = 1;
-const SHORTCUT_TONES: Tone[] = ["primary", "pink", "info", "success", "warning"];
+const SHORTCUT_TONES: Tone[] = ["primary", "teal", "info", "success", "warning"];
 
 export default function InicioPage() {
   return (

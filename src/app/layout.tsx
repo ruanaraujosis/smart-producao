@@ -15,17 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Smart Produção", template: "%s · Smart Produção" },
-  description: "Sistema de gestão da Smart Gráfica: pedidos, artes, produção, estoque e expedição.",
-  applicationName: "Smart Produção",
-  appleWebApp: { capable: true, title: "Smart Produção", statusBarStyle: "black-translucent" },
+  title: { default: "graphicX", template: "%s · graphicX" },
+  description:
+    "graphicX: gestão completa para gráficas — pedidos, artes, produção, estoque, expedição e marketplaces.",
+  applicationName: "graphicX",
+  appleWebApp: { capable: true, title: "graphicX", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#391036" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f050e" },
+    { media: "(prefers-color-scheme: light)", color: "#14287a" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1626" },
   ],
   width: "device-width",
   initialScale: 1,

@@ -1,15 +1,16 @@
-/** SVG do símbolo usado para gerar favicon e ícones do PWA. */
+/** SVG do símbolo da graphicX usado para gerar favicon e ícones do PWA. */
 export function brandIconSvg({ padded }: { padded: boolean }) {
-  // Ícone "maskable": o Android recorta as bordas, então o símbolo fica menor dentro de um fundo cheio.
+  // Ícone "maskable": o Android recorta as bordas, então o X fica menor dentro de um fundo cheio.
   const s = padded ? 0.72 : 1;
   const offset = (64 - 64 * s) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0%" stop-color="#ff8fcf"/><stop offset="55%" stop-color="#ed47a7"/><stop offset="100%" stop-color="#c0168a"/>
+    <stop offset="0%" stop-color="#0e7c86"/><stop offset="100%" stop-color="#42a5f5"/>
   </linearGradient></defs>
-  ${padded ? '<rect width="64" height="64" fill="#4a1347"/>' : '<circle cx="32" cy="32" r="32" fill="#4a1347"/>'}
+  <rect width="64" height="64" rx="${padded ? 0 : 16}" fill="url(#g)"/>
   <g transform="translate(${offset} ${offset}) scale(${s})">
-    <path d="M42 19H28a6.5 6.5 0 0 0 0 13h8a6.5 6.5 0 0 1 0 13H22" fill="none" stroke="url(#g)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M20 20 44 44" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M44 20 20 44" stroke="#f47b13" stroke-width="8" stroke-linecap="round"/>
   </g>
 </svg>`;
 }

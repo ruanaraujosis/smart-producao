@@ -8,12 +8,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Smart Produção — regras do projeto
+# graphicX — regras do projeto
+
+- **graphicX** é a plataforma SaaS (marca do produto). As gráficas, como a Smart Gráfica, são clientes (tenants): o nome delas aparece só no selo do header. O repositório continua `smart-producao`.
 
 - Especificação completa em `PROMPT.md`. Interface 100% em português do Brasil; datas em `America/Sao_Paulo` (`src/lib/format.ts`); moeda BRL.
 - Repositório **público**: nunca versionar segredos, dados de clientes ou arquivos de arte.
 - **Credenciais: siga a skill `segredos` (`.claude/skills/segredos/SKILL.md`).** Nunca leia, imprima ou repita valores de chaves; confira com `npm run env:verificar` (`-- --conexao` testa o Supabase). Um hook bloqueia o acesso a arquivos de ambiente; não tente contorná-lo.
-- Paleta da marca: tokens em `src/app/globals.css` (primário `#8b1c80`, header `#391036`, rosa `#ed47a7`). Toda tela precisa funcionar nos temas claro e escuro e no celular (alvos de toque ≥ 44px; tabelas viram cards).
+- Paleta da graphicX: tokens em `src/app/globals.css` (laranja `#f47b13`, com `#c84f08` nos botões do tema claro por contraste AA; azul-marinho `#14287a`; verde-azulado `#0e7c86`; azul-céu `#42a5f5`; roxo `#7c3aed`; verde-limão `#a3c13a`). Use sempre os tokens (`bg-primary`, `text-brand-teal`...), nunca hex solto. Toda tela precisa funcionar nos temas claro e escuro e no celular (alvos de toque ≥ 44px; tabelas viram cards).
 - **Multi-empresa (SaaS)**: toda tabela de negócio tem `organization_id` e políticas RLS com `private.is_member(organization_id)` / `private.has_org_role(organization_id, ...)`. Nunca confie na gráfica ativa (cookie) para autorizar.
 - Autorização na aplicação: `requireOrg([...perfis])`, `requireUser` ou `requirePlatformAdmin` (`src/lib/auth/dal.ts`) em toda página e Server Action. O RLS é a barreira final; toda tabela nova precisa de RLS e políticas na mesma migration.
 - A chave secreta (`createAdminClient`) só depois de autorizar, e só para o que o RLS não cobre (contas no Auth). Contas que participam de mais de uma gráfica não podem ser alteradas pelo admin de uma delas (`exclusiveMembers`).

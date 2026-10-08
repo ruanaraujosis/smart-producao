@@ -15,12 +15,12 @@ import { ROLE_LABELS } from "@/lib/auth/roles";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 bg-brand-header text-brand-header-foreground shadow-md">
+      <header className="sticky top-0 z-40 border-b-[3px] border-brand-teal bg-brand-header text-brand-header-foreground shadow-sm">
         <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-4">
             <Link
               href="/inicio"
-              className="rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-brand-pink/60"
+              className="rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <Logo />
             </Link>
@@ -28,7 +28,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               <OrganizationBadge />
             </Suspense>
           </div>
-          <Suspense fallback={<div className="size-9 rounded-full bg-white/10" aria-hidden />}>
+          <Suspense fallback={<div className="size-9 rounded-full bg-muted" aria-hidden />}>
             <HeaderUser />
           </Suspense>
         </div>
@@ -57,11 +57,11 @@ async function OrganizationBadge() {
   if (!membership) return null;
   const label = <span className="truncate">{membership.name}</span>;
   const className =
-    "hidden max-w-56 items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium sm:flex";
+    "hidden max-w-56 items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground text-sm font-medium sm:flex";
   return session.memberships.length > 1 ? (
     <Link
       href="/selecionar-empresa"
-      className={`${className} outline-none hover:bg-white/15 focus-visible:ring-3 focus-visible:ring-brand-pink/60`}
+      className={`${className} outline-none hover:bg-secondary/70 focus-visible:ring-3 focus-visible:ring-ring/50`}
       title="Trocar de gráfica"
     >
       {label}

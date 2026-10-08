@@ -25,7 +25,7 @@ export async function startEnrollment(): Promise<EnrollmentResult> {
 
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: "totp",
-    issuer: "Smart Produção",
+    issuer: "graphicX",
     friendlyName: `Autenticador ${new Date().toISOString().slice(0, 10)}`,
   });
   if (error || !data)

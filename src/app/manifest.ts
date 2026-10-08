@@ -3,16 +3,16 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Smart Produção",
-    short_name: "Smart",
-    description: "Gestão da Smart Gráfica: pedidos, artes, produção, estoque e expedição.",
+    name: "graphicX",
+    short_name: "graphicX",
+    description: "Gestão completa para gráficas: pedidos, artes, produção, estoque e expedição.",
     lang: "pt-BR",
     start_url: "/inicio",
     scope: "/",
     display: "standalone",
     orientation: "any",
-    background_color: "#f8f7fa",
-    theme_color: "#391036",
+    background_color: "#f4f7fb",
+    theme_color: "#14287a",
     categories: ["business", "productivity"],
     icons: [
       { src: "/icon/192", sizes: "192x192", type: "image/png", purpose: "any" },

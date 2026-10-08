@@ -15,7 +15,7 @@ export default function PlataformaPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Plataforma"
-        description="Gráficas clientes do Smart Produção. Você vê cadastros e números gerais, não os pedidos delas."
+        description="Gráficas clientes da graphicX. Você vê cadastros e números gerais, não os pedidos delas."
         actions={<CreateOrganizationDialog />}
       />
       <Suspense
@@ -62,7 +62,7 @@ async function Organizations() {
     <>
       <div className="grid gap-3 sm:grid-cols-3">
         <StatCard icon={Building2} value={activeCount} label="Gráficas ativas" />
-        <StatCard icon={UsersRound} tone="pink" value={people ?? 0} label="Pessoas na plataforma" />
+        <StatCard icon={UsersRound} tone="teal" value={people ?? 0} label="Pessoas na plataforma" />
         <StatCard
           icon={CircleOff}
           tone="warning"

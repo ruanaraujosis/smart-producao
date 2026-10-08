@@ -8,21 +8,29 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       {/* Painel da marca (desktop) */}
-      <div className="relative hidden overflow-hidden bg-linear-to-br from-brand-header via-brand-deep to-[#6b1a63] p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <Logo className="text-white" />
+      {/* Cores fixas (não seguem o tema): o painel é sempre o azul-marinho da marca. */}
+      <div className="relative hidden overflow-hidden bg-linear-to-br from-[#14287a] via-[#123a7f] to-[#0e7c86] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <Logo inverse className="relative z-10 text-white" />
         <div className="relative z-10 max-w-md">
           <p className="font-heading text-4xl leading-tight font-bold">
-            Comunicação visual que <span className="text-brand-pink">VENDE!</span>
+            A gestão completa da sua <span className="text-[#f47b13]">gráfica</span>.
           </p>
-          <p className="mt-4 text-white/75">
-            Pedidos, artes, produção, estoque e expedição da Smart Gráfica em um só lugar.
+          <p className="mt-4 text-white/80">
+            Pedidos de todos os canais, aprovação de artes, produção, estoque e expedição em um só
+            lugar.
           </p>
         </div>
-        <p className="text-sm text-white/60">Smart Produção 2.0</p>
-        <LogoMark
-          title=""
-          className="pointer-events-none absolute -right-24 -bottom-24 size-[28rem] opacity-15"
-        />
+        <p className="relative z-10 text-sm text-white/80">graphicX · plataforma para gráficas</p>
+        {/* Onda azul-céu, como no site de referência */}
+        <svg
+          aria-hidden
+          viewBox="0 0 600 200"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-48 w-full"
+        >
+          <path d="M0 120 C150 40 300 200 600 90 L600 200 L0 200 Z" fill="#42a5f5" opacity="0.35" />
+          <path d="M0 160 C200 90 380 210 600 140 L600 200 L0 200 Z" fill="#42a5f5" opacity="0.5" />
+        </svg>
       </div>
 
       {/* Formulário */}

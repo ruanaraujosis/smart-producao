@@ -2,12 +2,13 @@ import { useId } from "react";
 import { cn } from "cn";
 
 /**
- * Símbolo da Smart Gráfica: círculo roxo escuro com o "S" rosa.
- * Versão vetorial simplificada — substituir pelo arquivo oficial quando disponível.
+ * Símbolo da graphicX: quadrado arredondado em degradê verde-azulado → azul-céu
+ * com um "X" formado por um traço branco e um laranja.
+ * Versão vetorial provisória — substituir pelo arquivo oficial da marca quando existir.
  */
 export function LogoMark({
   className,
-  title = "Smart Gráfica",
+  title = "graphicX",
 }: {
   className?: string;
   title?: string;
@@ -23,33 +24,42 @@ export function LogoMark({
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ff8fcf" />
-          <stop offset="55%" stopColor="#ed47a7" />
-          <stop offset="100%" stopColor="#c0168a" />
+          <stop offset="0%" stopColor="#0e7c86" />
+          <stop offset="100%" stopColor="#42a5f5" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="32" fill="#4a1347" />
-      <path
-        d="M42 19H28a6.5 6.5 0 0 0 0 13h8a6.5 6.5 0 0 1 0 13H22"
-        fill="none"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="7.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <rect width="64" height="64" rx="16" fill={`url(#${gradientId})`} />
+      <path d="M20 20 44 44" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+      <path d="M44 20 20 44" stroke="#f47b13" strokeWidth="8" strokeLinecap="round" />
     </svg>
   );
 }
 
-export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
+export function Logo({
+  className,
+  compact = false,
+  inverse = false,
+}: {
+  className?: string;
+  compact?: boolean;
+  /** Sobre fundo escuro fixo (ex.: painel do login). */
+  inverse?: boolean;
+}) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <LogoMark />
       {!compact && (
         <span className="flex flex-col leading-none">
-          <span className="font-heading text-lg font-bold tracking-tight">Smart</span>
-          <span className="text-[0.65rem] font-medium tracking-wide text-brand-pink">
-            Gráfica e Comunicação
+          <span className="font-heading text-xl font-bold tracking-tight">
+            graphic<span className={inverse ? "text-[#f47b13]" : "text-brand-orange"}>X</span>
+          </span>
+          <span
+            className={cn(
+              "text-[0.65rem] font-medium tracking-wide",
+              inverse ? "text-white/80" : "text-brand-teal",
+            )}
+          >
+            Gestão para gráficas
           </span>
         </span>
       )}

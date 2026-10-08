@@ -79,7 +79,7 @@ async function AccountSection() {
           <dt className="text-xs text-muted-foreground">Gráficas e perfis</dt>
           <dd className="mt-1 flex flex-wrap gap-2">
             {user.isPlatformAdmin && (
-              <span className="inline-flex h-7 items-center rounded-full bg-brand-pink/12 px-3 text-xs font-medium text-brand-pink">
+              <span className="inline-flex h-7 items-center rounded-full bg-info-soft px-3 text-xs font-medium text-info">
                 SuperAdmin da plataforma
               </span>
             )}
