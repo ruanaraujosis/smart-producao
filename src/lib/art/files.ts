@@ -37,7 +37,7 @@ export function safeFileName(fullName: string) {
       : "";
   const base = (dot > 0 ? name.slice(0, dot) : name)
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{Diacritic}/gu, "")
     .replace(/[^a-zA-Z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60)
