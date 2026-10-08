@@ -4,6 +4,12 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+### Fase 2 — Cadastros + Estoque
+
+_(em desenvolvimento)_
+
+## [0.1.0] - 2026-10-08
+
 ### Fase 1 — Fundação
 
 #### Adicionado
