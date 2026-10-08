@@ -20,7 +20,7 @@ const ROADMAP = [
   { phase: 8, title: "Magalu e TikTok Shop", detail: "Mesma camada de integrações" },
 ];
 
-const CURRENT_PHASE = 1;
+const CURRENT_PHASE = 2;
 
 export function Roadmap() {
   return (
