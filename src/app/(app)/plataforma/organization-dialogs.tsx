@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useForm, type FieldError as RHFFieldError } from "react-hook-form";
 import { toast } from "sonner";
@@ -19,8 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { createOrganization, setOrganizationActive } from "./actions";
-import { createOrganizationSchema } from "./schemas";
+import { EntityFormDialog } from "@/components/kit/entity-form";
+import { createOrganization, setOrganizationActive, updateOrganization } from "./actions";
+import { createOrganizationSchema, editOrganizationSchema } from "./schemas";
 
 function Field({
   id,
@@ -229,6 +230,46 @@ export function OrganizationActiveSwitch({
           else toast.error(result.error);
         })
       }
+    />
+  );
+}
+
+/** Edição dos dados da gráfica pela plataforma, inclusive o código. */
+export function EditOrganizationDialog({
+  organization,
+}: {
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+    legal_name: string | null;
+    document: string | null;
+  };
+}) {
+  return (
+    <EntityFormDialog
+      title={`Editar ${organization.name}`}
+      description="O código identifica a gráfica na plataforma. Só você (SuperAdmin) pode mudá-lo."
+      trigger={
+        <Button variant="ghost" size="icon" aria-label={`Editar ${organization.name}`}>
+          <Pencil />
+        </Button>
+      }
+      schema={editOrganizationSchema}
+      defaultValues={{
+        name: organization.name,
+        slug: organization.slug,
+        legal_name: organization.legal_name ?? "",
+        document: organization.document ?? "",
+      }}
+      fields={[
+        { name: "name", label: "Nome da gráfica" },
+        { name: "slug", label: "Código", half: true, hint: "Letras minúsculas, números e hífen." },
+        { name: "document", label: "CNPJ", half: true, inputMode: "numeric" },
+        { name: "legal_name", label: "Razão social" },
+      ]}
+      action={(values) => updateOrganization(organization.id, values)}
+      submitLabel="Salvar"
     />
   );
 }

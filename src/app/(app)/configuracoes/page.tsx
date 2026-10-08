@@ -1,4 +1,4 @@
-import { ChevronRight, PlugZap, ShieldCheck, Tv, Users } from "lucide-react";
+import { Building2, ChevronRight, PlugZap, ShieldCheck, Tv, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/kit/page-header";
@@ -17,6 +17,14 @@ const SECTIONS: {
   permission: Permission;
   comingSoon?: boolean;
 }[] = [
+  {
+    href: "/configuracoes/empresa",
+    title: "Dados da gráfica",
+    description: "Nome, razão social e CNPJ da gráfica.",
+    icon: Building2,
+    tone: "teal",
+    permission: "configuracoes.ver",
+  },
   {
     href: "/configuracoes/usuarios",
     title: "Equipe",

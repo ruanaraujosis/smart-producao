@@ -5,7 +5,11 @@ import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/auth/dal";
 import { createPerson, deletePerson, lookupPerson } from "@/lib/auth/people";
 import { createClient } from "@/lib/supabase/server";
-import { createOrganizationSchema, type CreateOrganizationInput } from "./schemas";
+import {
+  createOrganizationSchema,
+  editOrganizationSchema,
+  type CreateOrganizationInput,
+} from "./schemas";
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -108,4 +112,31 @@ export async function setOrganizationActive(
     ok: true,
     message: active ? "Gráfica reativada." : "Gráfica desativada. Os membros perdem o acesso.",
   };
+}
+
+/** Nome, razão social, CNPJ e código da gráfica (só a plataforma muda o código). */
+export async function updateOrganization(
+  organizationId: string,
+  input: unknown,
+): Promise<ActionResult> {
+  await requirePlatformAdmin();
+  const id = z.uuid().safeParse(organizationId);
+  if (!id.success) return { ok: false, error: "Gráfica inválida." };
+  const parsed = editOrganizationSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update(parsed.data).eq("id", id.data);
+  if (error) {
+    return {
+      ok: false,
+      error:
+        error.code === "23505"
+          ? `O código "${parsed.data.slug}" já está em uso.`
+          : "Não foi possível salvar a gráfica.",
+    };
+  }
+  // O nome aparece no selo do header de todos os membros.
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Gráfica atualizada." };
 }
