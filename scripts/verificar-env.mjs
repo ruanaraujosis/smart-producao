@@ -96,7 +96,12 @@ async function testConnection(vars) {
         : "  ⚠ cadastro público LIGADO — desligue em Authentication → Sign In / Providers",
     );
   }
-  for (const table of ["organizations", "organization_members", "platform_admins"]) {
+  for (const table of [
+    "organizations",
+    "organization_members",
+    "organization_roles",
+    "platform_admins",
+  ]) {
     const res = await fetch(`${url}/rest/v1/${table}?select=*&limit=0`, {
       headers: { apikey: vars.SUPABASE_SECRET_KEY },
     }).catch(() => null);
