@@ -50,17 +50,19 @@ Requisitos: Node 22+ e um projeto no [Supabase](https://supabase.com) (o plano g
 
 ### Scripts
 
-| Script                                  | O que faz                                                        |
-| --------------------------------------- | ---------------------------------------------------------------- |
-| `npm run dev`                           | Servidor de desenvolvimento                                      |
-| `npm run build` / `start`               | Build e servidor de produção                                     |
-| `npm run lint` / `typecheck` / `format` | ESLint, TypeScript e Prettier                                    |
-| `npm test`                              | Testes unitários (Vitest)                                        |
-| `npm run test:e2e`                      | Testes de ponta a ponta (Playwright)                             |
-| `npm run db:new <nome>`                 | Cria uma migration nova em `supabase/migrations/`                |
-| `npm run db:push`                       | Aplica as migrations no projeto Supabase vinculado               |
-| `npm run db:types`                      | Regenera `src/lib/supabase/database.types.ts` a partir do banco  |
-| `npm run plataforma:iniciar`            | Cria a primeira gráfica e o SuperAdmin definidos no `.env.local` |
+| Script                                  | O que faz                                                                    |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`                           | Servidor de desenvolvimento                                                  |
+| `npm run build` / `start`               | Build e servidor de produção                                                 |
+| `npm run lint` / `typecheck` / `format` | ESLint, TypeScript e Prettier                                                |
+| `npm test`                              | Testes unitários (Vitest)                                                    |
+| `npm run test:e2e`                      | Testes de ponta a ponta (Playwright)                                         |
+| `npm run db:new <nome>`                 | Cria uma migration nova em `supabase/migrations/`                            |
+| `npm run db:push`                       | Aplica as migrations no projeto Supabase vinculado                           |
+| `npm run db:types`                      | Regenera `src/lib/supabase/database.types.ts` a partir do banco              |
+| `npm run plataforma:iniciar`            | Cria a primeira gráfica e o SuperAdmin definidos no `.env.local`             |
+| `npm run env:verificar`                 | Confere o `.env.local` sem mostrar valores (`-- --conexao` testa o Supabase) |
+| `npm run segredos:verificar`            | Procura credenciais nos arquivos versionados (pre-commit e CI)               |
 
 ## Arquitetura
 
@@ -130,9 +132,13 @@ O CI (`.github/workflows/ci.yml`) roda formatação, lint, tipos, testes unitár
 2. Em _Environment Variables_, cadastre `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`, com valores diferentes para _Production_ (`main`) e _Preview_ (`develop` e PRs).
 3. No Supabase, em _Authentication → URL Configuration_, adicione a URL da Vercel em _Site URL_ e _Redirect URLs_.
 
-## Variáveis de ambiente
+## Variáveis de ambiente e segredos
 
-Veja [.env.example](.env.example). Segredos nunca entram no repositório: este repositório é **público**.
+Veja [.env.example](.env.example). Segredos nunca entram no repositório: este repositório é **público**. As regras completas estão na skill [`segredos`](.claude/skills/segredos/SKILL.md). Proteções ativas:
+
+- **Pre-commit e CI** (`npm run segredos:verificar`): barram commits com chaves, JWTs, chaves privadas, arquivos de ambiente e certificados. O hook do Git é ativado pelo `npm install` (`core.hooksPath = .githooks`).
+- **Claude Code** (`.claude/settings.json`): um hook impede o assistente de ler arquivos de ambiente ou exibir variáveis secretas. Ele confere tudo com `npm run env:verificar`.
+- **Vazou uma chave?** Troque no painel do provedor e apague a antiga. Remover do código não basta.
 
 ## Cadastrando uma nova loja/marketplace
 

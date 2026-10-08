@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Especificação completa em `PROMPT.md`. Interface 100% em português do Brasil; datas em `America/Sao_Paulo` (`src/lib/format.ts`); moeda BRL.
 - Repositório **público**: nunca versionar segredos, dados de clientes ou arquivos de arte.
+- **Credenciais: siga a skill `segredos` (`.claude/skills/segredos/SKILL.md`).** Nunca leia, imprima ou repita valores de chaves; confira com `npm run env:verificar` (`-- --conexao` testa o Supabase). Um hook bloqueia o acesso a arquivos de ambiente; não tente contorná-lo.
 - Paleta da marca: tokens em `src/app/globals.css` (primário `#8b1c80`, header `#391036`, rosa `#ed47a7`). Toda tela precisa funcionar nos temas claro e escuro e no celular (alvos de toque ≥ 44px; tabelas viram cards).
 - **Multi-empresa (SaaS)**: toda tabela de negócio tem `organization_id` e políticas RLS com `private.is_member(organization_id)` / `private.has_org_role(organization_id, ...)`. Nunca confie na gráfica ativa (cookie) para autorizar.
 - Autorização na aplicação: `requireOrg([...perfis])`, `requireUser` ou `requirePlatformAdmin` (`src/lib/auth/dal.ts`) em toda página e Server Action. O RLS é a barreira final; toda tabela nova precisa de RLS e políticas na mesma migration.
