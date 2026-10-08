@@ -64,7 +64,9 @@ async function RolesContent() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("organization_roles")
-    .select("id, name, description, permissions, is_admin, organization_members(count)")
+    .select(
+      "id, name, description, permissions, is_admin, require_mfa, organization_members(count)",
+    )
     .eq("organization_id", membership.organizationId)
     .order("is_admin", { ascending: false })
     .order("name");
@@ -84,10 +86,11 @@ async function RolesContent() {
         name: r.name,
         description: r.description,
         permissions,
+        requireMfa: r.require_mfa,
       } satisfies RoleView,
       isAdmin: r.is_admin,
       members: r.organization_members[0]?.count ?? 0,
-      requiresMfa: roleRequiresMfa({ isAdmin: r.is_admin, permissions: r.permissions }),
+      requiresMfa: roleRequiresMfa({ isAdmin: r.is_admin, requireMfa: r.require_mfa }),
       editable,
     };
   });

@@ -50,15 +50,15 @@ describe("resolveActiveMembership", () => {
   });
 });
 
-const producao = { isAdmin: false, permissions: ["pcp.gerenciar"] };
-const admin = { isAdmin: true, permissions: [] };
-const gestorEquipe = { isAdmin: false, permissions: ["equipe.gerenciar"] };
+const producao = { isAdmin: false, requireMfa: false };
+const admin = { isAdmin: true, requireMfa: true };
+const gestorEquipe = { isAdmin: false, requireMfa: true };
 
 describe("requiresMfa", () => {
   it("exige para quem é Administrador em alguma gráfica", () => {
     expect(requiresMfa({ isPlatformAdmin: false, roles: [producao, admin] })).toBe(true);
   });
-  it("exige para perfis com permissões sensíveis", () => {
+  it("exige para perfis com a exigência ligada", () => {
     expect(requiresMfa({ isPlatformAdmin: false, roles: [gestorEquipe] })).toBe(true);
   });
   it("exige para SuperAdmin", () => {
@@ -71,8 +71,11 @@ describe("requiresMfa", () => {
 
 describe("effectivePermissions", () => {
   it("Administrador tem todas; os demais têm as do perfil, com gerenciar incluindo ver", () => {
-    expect(effectivePermissions(admin).length).toBeGreaterThan(10);
-    expect(effectivePermissions(producao)).toEqual(["pcp.ver", "pcp.gerenciar"]);
+    expect(effectivePermissions({ isAdmin: true, permissions: [] }).length).toBeGreaterThan(10);
+    expect(effectivePermissions({ isAdmin: false, permissions: ["pcp.gerenciar"] })).toEqual([
+      "pcp.ver",
+      "pcp.gerenciar",
+    ]);
   });
 });
 

@@ -95,7 +95,7 @@ export const ALL_PERMISSIONS: readonly Permission[] = PERMISSION_MODULES.flatMap
   m.actions.map((a) => `${m.key}.${a}` as Permission),
 );
 
-/** Quem tem alguma destas precisa de verificação em duas etapas (MFA). */
+/** Permissões que pedem MFA: o formulário de perfil sugere ligar a exigência. */
 export const SENSITIVE_PERMISSIONS: readonly Permission[] = [
   "equipe.gerenciar",
   "configuracoes.gerenciar",
@@ -122,11 +122,14 @@ export function expandPermissions(perms: readonly string[]): Permission[] {
   return ALL_PERMISSIONS.filter((p) => set.has(p));
 }
 
-export function roleRequiresMfa(role: { isAdmin: boolean; permissions: readonly string[] }) {
-  return (
-    role.isAdmin ||
-    role.permissions.some((p) => (SENSITIVE_PERMISSIONS as readonly string[]).includes(p))
-  );
+/** O perfil exige MFA? O Administrador sempre; os outros, conforme a opção do perfil. */
+export function roleRequiresMfa(role: { isAdmin: boolean; requireMfa: boolean }) {
+  return role.isAdmin || role.requireMfa;
+}
+
+/** Tem alguma permissão sensível (equipe, configurações ou financeiro com "gerenciar")? */
+export function hasSensitivePermission(permissions: readonly string[]) {
+  return permissions.some((p) => (SENSITIVE_PERMISSIONS as readonly string[]).includes(p));
 }
 
 /** `required` pode ser uma permissão ou uma lista (basta ter uma). */

@@ -65,12 +65,12 @@ async function UsersContent() {
     supabase
       .from("organization_members")
       .select(
-        "user_id, role_id, active, created_at, profiles(username, full_name, email), organization_roles(name, is_admin, permissions)",
+        "user_id, role_id, active, created_at, profiles(username, full_name, email), organization_roles(name, is_admin, permissions, require_mfa)",
       )
       .eq("organization_id", membership.organizationId),
     supabase
       .from("organization_roles")
-      .select("id, name, description, is_admin, permissions")
+      .select("id, name, description, is_admin, permissions, require_mfa")
       .eq("organization_id", membership.organizationId)
       .order("is_admin", { ascending: false })
       .order("name"),
@@ -88,7 +88,7 @@ async function UsersContent() {
       id: r.id,
       name: r.name,
       description: r.description,
-      requiresMfa: roleRequiresMfa({ isAdmin: r.is_admin, permissions: r.permissions }),
+      requiresMfa: roleRequiresMfa({ isAdmin: r.is_admin, requireMfa: r.require_mfa }),
     }));
 
   const rows = (data ?? []).filter((row) => row.profiles && row.organization_roles);
@@ -106,7 +106,7 @@ async function UsersContent() {
       roleName: row.organization_roles!.name,
       requiresMfa: roleRequiresMfa({
         isAdmin: row.organization_roles!.is_admin,
-        permissions: row.organization_roles!.permissions,
+        requireMfa: row.organization_roles!.require_mfa,
       }),
       active: row.active,
       exclusive: exclusive.has(row.user_id),
