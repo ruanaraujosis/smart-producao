@@ -329,7 +329,7 @@ export function OrderForm({
             Nenhum item ainda.
           </p>
         ) : (
-          <ul className="mt-4 flex flex-col gap-3">
+          <ul className="@container mt-4 flex flex-col gap-3">
             {rows.map((r, i) => {
               const v = r.variant_id ? byId.get(r.variant_id) : undefined;
               const qty = num(r.quantity);
@@ -337,9 +337,9 @@ export function OrderForm({
               return (
                 <li
                   key={r.key}
-                  className="grid grid-cols-2 gap-2 rounded-xl border p-3 sm:grid-cols-[1fr_6rem_8rem_7rem_auto] sm:items-end"
+                  className="grid grid-cols-2 gap-2 rounded-xl border p-3 @xl:grid-cols-[1fr_6rem_8rem_7rem_auto] @xl:items-end"
                 >
-                  <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
+                  <div className="col-span-2 flex flex-col gap-1 @xl:col-span-1">
                     <Label htmlFor={`${ids}-${r.key}-d`} className="text-xs">
                       {v ? `Item ${i + 1} · ${v.sku}` : `Item ${i + 1} · avulso`}
                     </Label>
@@ -377,7 +377,7 @@ export function OrderForm({
                       className="text-right"
                     />
                   </div>
-                  <p className="self-center text-right text-sm font-medium sm:self-end sm:pb-2">
+                  <p className="self-center text-right text-sm font-medium @xl:self-end @xl:pb-2">
                     {formatCurrency(roundCents(qty * num(r.unit_price)))}
                   </p>
                   <Button
@@ -394,7 +394,7 @@ export function OrderForm({
                   {(short || r.locked) && (
                     <p
                       className={cn(
-                        "col-span-2 text-xs sm:col-span-5",
+                        "col-span-2 text-xs @xl:col-span-5",
                         r.locked ? "text-muted-foreground" : "text-warning",
                       )}
                     >

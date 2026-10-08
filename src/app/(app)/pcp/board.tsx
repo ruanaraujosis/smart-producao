@@ -56,7 +56,10 @@ export function Board({
   const [synced, setSynced] = useState(initialOrders);
   const [dragging, setDragging] = useState<BoardOrder | null>(null);
   const [over, setOver] = useState<OrderStatus | null>(null);
-  const [mobileColumn, setMobileColumn] = useState<OrderStatus>("aprovado");
+  // No celular abre na primeira etapa que tem pedidos.
+  const [mobileColumn, setMobileColumn] = useState<OrderStatus>(
+    () => BOARD_STATUSES.find((s) => initialOrders.some((o) => o.status === s)) ?? "novo",
+  );
   const [live, setLive] = useState(false);
   const [moving, startMoving] = useTransition();
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -44,6 +44,15 @@ export async function loadOrderFormOptions(org: string) {
       .eq("organization_id", org),
   ]);
 
+  for (const [name, res] of Object.entries({
+    variantsRes,
+    rulesRes,
+    paymentsRes,
+    availabilityRes,
+  })) {
+    if (res.error) console.error(`[pedidos] falha ao carregar ${name}:`, res.error.message);
+  }
+
   const rules = Object.fromEntries(SALES_CHANNELS.map((c) => [c, 0])) as Record<
     SalesChannel,
     number

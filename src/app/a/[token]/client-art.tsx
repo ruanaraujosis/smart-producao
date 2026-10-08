@@ -43,6 +43,7 @@ export function ProofReview({
   const [mode, setMode] = useState<"view" | "change">("view");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const commentRef = useRef<HTMLTextAreaElement>(null);
 
   function addPin(e: React.MouseEvent<HTMLButtonElement>) {
     if (pins.length >= 30) return;
@@ -53,6 +54,13 @@ export function ProofReview({
     setPins((p) => [...p, { x: round(x), y: round(y), n }]);
     setMode("change");
     setComment((c) => (c ? `${c}\n${n}. ` : `${n}. `));
+    // Leva o cursor para o fim do comentário, no item do ponto marcado.
+    requestAnimationFrame(() => {
+      const el = commentRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
   }
 
   function send(decision: "aprovada" | "alteracao") {
@@ -138,6 +146,7 @@ export function ProofReview({
         <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4">
           <Label htmlFor={`${ids}-c`}>O que precisa mudar?</Label>
           <Textarea
+            ref={commentRef}
             id={`${ids}-c`}
             rows={4}
             maxLength={2000}

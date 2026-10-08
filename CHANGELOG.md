@@ -4,6 +4,20 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+### Fase 3 — Pedidos + PCP + Aprovação de Artes
+
+#### Adicionado
+
+- **Pedidos** de todos os canais numa lista só, com filtros por etapa, canal e busca, e indicadores (em andamento, atrasados, postam hoje, em aprovação).
+- **Novo pedido / orçamento**: itens com o preço do canal, prazo sugerido em dias úteis, frete, desconto e forma de pagamento; orçamento vira pedido com um clique.
+- **Data limite de postagem** destacada (vermelho quando atrasa ou vence hoje).
+- **Linha do tempo** do pedido com mudanças de status, arte e comentários da equipe.
+- **Estoque nos pedidos**: insumos reservados ao confirmar, baixados ao entrar em impressão (pronta-entrega: no envio) e devolvidos ao cancelar.
+- **Aprovação de artes**: link seguro para o cliente (sem login) enviar arquivos e aprovar ou pedir alteração marcando pontos na prova; provas versionadas (v1, v2…) com **marca d'água** aplicada no servidor; arquivo final em alta separado; comprovante de aceite com data, IP e versão.
+- **Fila de artes** do designer e **quadro de produção (Kanban) em tempo real**, com arrastar e soltar no computador e botão de avançar no celular.
+- Permissão por etapa: artes, produção e expedição só movem o pedido nas suas etapas.
+- Testes do banco (pgTAP) no CI para as regras de pedidos, estoque e aprovação.
+
 ## [0.2.0] - 2026-10-08
 
 ### Fase 2 — Cadastros + Estoque
