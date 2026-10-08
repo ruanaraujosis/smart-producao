@@ -1,61 +1,51 @@
 import { describe, expect, it } from "vitest";
-import { APP_ROLES, hasRole } from "./auth/roles";
+import { ALL_PERMISSIONS, type Permission } from "./auth/permissions";
 import {
   BOTTOM_NAV_LIMIT,
+  NAV_ITEMS,
   isActivePath,
   navItemsFor,
-  NAV_ITEMS,
   splitBottomNav,
 } from "./navigation";
 
-const hrefs = (role: (typeof APP_ROLES)[number], isPlatformAdmin = false) =>
-  navItemsFor({ role, isPlatformAdmin }).map((item) => item.href);
-
-describe("hasRole", () => {
-  it("admin passa em qualquer regra", () => {
-    expect(hasRole("admin", ["financeiro"])).toBe(true);
-  });
-  it("sem perfil não passa", () => {
-    expect(hasRole(null, ["financeiro"])).toBe(false);
-  });
-});
+const hrefs = (permissions: readonly Permission[] | null, isPlatformAdmin = false) =>
+  navItemsFor({ permissions, isPlatformAdmin }).map((item) => item.href);
 
 describe("navItemsFor", () => {
-  it("admin vê todos os módulos", () => {
-    expect(hrefs("admin")).toEqual(
+  it("Administrador (todas as permissões) vê todos os módulos da gráfica", () => {
+    expect(hrefs(ALL_PERMISSIONS)).toEqual(
       NAV_ITEMS.filter((item) => item.scope === "org").map((item) => item.href),
     );
   });
 
-  it("todos os perfis veem o Início", () => {
-    for (const role of APP_ROLES) expect(hrefs(role)).toContain("/inicio");
+  it("qualquer membro vê o Início, mesmo sem permissões", () => {
+    expect(hrefs([])).toEqual(["/inicio"]);
   });
 
-  it("só o admin vê Configurações", () => {
-    for (const role of APP_ROLES.filter((r) => r !== "admin")) {
-      expect(hrefs(role)).not.toContain("/configuracoes");
-    }
+  it("mostra só os módulos liberados no perfil", () => {
+    expect(hrefs(["pedidos.ver", "artes.ver", "artes.gerenciar"])).toEqual([
+      "/inicio",
+      "/pedidos",
+      "/artes",
+    ]);
   });
 
-  it("financeiro não vê a fila de artes", () => {
-    expect(hrefs("financeiro")).toContain("/financeiro");
-    expect(hrefs("financeiro")).not.toContain("/artes");
+  it("Financeiro aparece com qualquer permissão financeira", () => {
+    expect(hrefs(["relatorios.ver"])).toContain("/financeiro");
   });
 
-  it("designer vê artes e produção", () => {
-    expect(hrefs("designer")).toEqual(expect.arrayContaining(["/artes", "/pcp"]));
+  it("Configurações aparece para quem vê a equipe ou as configurações", () => {
+    expect(hrefs(["equipe.ver"])).toContain("/configuracoes");
+    expect(hrefs(["pedidos.ver"])).not.toContain("/configuracoes");
   });
 
   it("sem gráfica ativa não vê módulos", () => {
-    expect(navItemsFor({ role: null })).toEqual([]);
+    expect(hrefs(null)).toEqual([]);
   });
 
   it("Plataforma só aparece para o SuperAdmin", () => {
-    expect(hrefs("admin")).not.toContain("/plataforma");
-    expect(hrefs("producao", true)).toContain("/plataforma");
-    expect(navItemsFor({ role: null, isPlatformAdmin: true }).map((i) => i.href)).toEqual([
-      "/plataforma",
-    ]);
+    expect(hrefs(ALL_PERMISSIONS)).not.toContain("/plataforma");
+    expect(hrefs(null, true)).toEqual(["/plataforma"]);
   });
 });
 

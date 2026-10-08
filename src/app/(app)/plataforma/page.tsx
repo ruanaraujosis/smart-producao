@@ -7,6 +7,7 @@ import { formatDate, initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "cn";
 import { CreateOrganizationDialog, OrganizationActiveSwitch } from "./organization-dialogs";
+import { Roadmap } from "./roadmap";
 
 export const metadata = { title: "Plataforma" };
 
@@ -112,6 +113,8 @@ async function Organizations() {
           ))}
         </ul>
       )}
+
+      <Roadmap />
     </>
   );
 }

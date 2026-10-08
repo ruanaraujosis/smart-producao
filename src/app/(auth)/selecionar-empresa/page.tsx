@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AuthCard, AuthCardSkeleton } from "@/components/kit/auth-card";
 import { requireUser } from "@/lib/auth/dal";
-import { ROLE_LABELS } from "@/lib/auth/roles";
 import { OrganizationPicker } from "./organization-picker";
 
 export const metadata = { title: "Escolha a gráfica" };
@@ -30,7 +29,7 @@ async function Picker() {
         organizations={session.memberships.map((m) => ({
           id: m.organizationId,
           name: m.name,
-          roleLabel: ROLE_LABELS[m.role],
+          roleLabel: m.roleName,
         }))}
         showPlatform={session.isPlatformAdmin}
       />

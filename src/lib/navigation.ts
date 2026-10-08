@@ -11,7 +11,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { hasRole, type AppRole } from "@/lib/auth/roles";
+import { can, type Permission } from "@/lib/auth/permissions";
 
 export type NavItem = {
   href: string;
@@ -19,91 +19,91 @@ export type NavItem = {
   icon: LucideIcon;
   /** "org": módulo da gráfica ativa; "platform": só para o SuperAdmin. */
   scope: "org" | "platform";
-  /** Perfis (na gráfica ativa) que veem o item; o admin sempre vê tudo. Vazio = todos. */
-  roles: readonly AppRole[];
-  /** Fase do roadmap em que o módulo chega; enquanto isso aparece como "em breve". */
-  phase?: number;
+  /** Permissão (na gráfica ativa) para ver o item; lista = basta uma. Sem = qualquer membro. */
+  permission?: Permission | readonly Permission[];
+  /** Módulo ainda não liberado: aparece como "em breve". */
+  comingSoon?: boolean;
 };
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/inicio", label: "Início", icon: House, scope: "org", roles: [] },
+  { href: "/inicio", label: "Início", icon: House, scope: "org" },
   {
     href: "/pedidos",
     label: "Pedidos",
     icon: ShoppingBag,
     scope: "org",
-    roles: ["atendimento", "financeiro"],
-    phase: 3,
+    permission: "pedidos.ver",
+    comingSoon: true,
   },
   {
     href: "/artes",
     label: "Artes",
     icon: Palette,
     scope: "org",
-    roles: ["atendimento", "designer"],
-    phase: 3,
+    permission: "artes.ver",
+    comingSoon: true,
   },
   {
     href: "/pcp",
     label: "Produção",
     icon: SquareKanban,
     scope: "org",
-    roles: ["atendimento", "designer", "producao", "expedicao"],
-    phase: 3,
+    permission: "pcp.ver",
+    comingSoon: true,
   },
   {
     href: "/estoque",
     label: "Estoque",
     icon: Boxes,
     scope: "org",
-    roles: ["atendimento", "producao"],
-    phase: 2,
+    permission: "estoque.ver",
+    comingSoon: true,
   },
   {
     href: "/expedicao",
     label: "Expedição",
     icon: Truck,
     scope: "org",
-    roles: ["expedicao"],
-    phase: 5,
+    permission: "expedicao.ver",
+    comingSoon: true,
   },
   {
     href: "/cadastros",
     label: "Cadastros",
     icon: Contact,
     scope: "org",
-    roles: ["atendimento"],
-    phase: 2,
+    permission: "cadastros.ver",
+    comingSoon: true,
   },
   {
     href: "/financeiro",
     label: "Financeiro",
     icon: Wallet,
     scope: "org",
-    roles: ["financeiro"],
-    phase: 4,
+    permission: ["financeiro.ver", "nfe.ver", "relatorios.ver"],
+    comingSoon: true,
   },
   {
     href: "/configuracoes",
     label: "Configurações",
     icon: Settings,
     scope: "org",
-    roles: ["admin"],
+    permission: ["equipe.ver", "configuracoes.ver"],
   },
-  { href: "/plataforma", label: "Plataforma", icon: Building2, scope: "platform", roles: [] },
+  { href: "/plataforma", label: "Plataforma", icon: Building2, scope: "platform" },
 ];
 
 export type NavContext = {
-  /** Perfil na gráfica ativa (null = nenhuma gráfica selecionada). */
-  role: AppRole | null | undefined;
+  /** Permissões na gráfica ativa (null = nenhuma gráfica selecionada). */
+  permissions: readonly Permission[] | null | undefined;
   isPlatformAdmin?: boolean;
 };
 
-export function navItemsFor({ role, isPlatformAdmin = false }: NavContext) {
+export function navItemsFor({ permissions, isPlatformAdmin = false }: NavContext) {
   return NAV_ITEMS.filter((item) => {
     if (item.scope === "platform") return isPlatformAdmin;
-    if (!role) return false;
-    return item.roles.length === 0 || hasRole(role, item.roles);
+    if (!permissions) return false;
+    return !item.permission || can(permissions, item.permission);
   });
 }
 

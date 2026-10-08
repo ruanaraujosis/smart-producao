@@ -1,5 +1,10 @@
 import { z } from "zod";
-import type { AppRole } from "./roles";
+import {
+  ALL_PERMISSIONS,
+  expandPermissions,
+  roleRequiresMfa,
+  type Permission,
+} from "./permissions";
 
 /** Cookie (httpOnly) com a gráfica ativa neste aparelho. Não é usado para autorização. */
 export const ACTIVE_ORG_COOKIE = "sp_org";
@@ -8,8 +13,16 @@ export type Membership = {
   organizationId: string;
   slug: string;
   name: string;
-  role: AppRole;
+  roleId: string;
+  roleName: string;
+  isAdmin: boolean;
+  /** Permissões efetivas ("gerenciar" já inclui "ver"; o Administrador tem todas). */
+  permissions: Permission[];
 };
+
+export function effectivePermissions(role: { isAdmin: boolean; permissions: readonly string[] }) {
+  return role.isAdmin ? [...ALL_PERMISSIONS] : expandPermissions(role.permissions);
+}
 
 /**
  * Decide em qual gráfica a pessoa está trabalhando:
@@ -27,9 +40,12 @@ export function resolveActiveMembership(
   return memberships.length === 1 ? memberships[0] : null;
 }
 
-/** Precisa de MFA quem é SuperAdmin ou admin de alguma gráfica. */
-export function requiresMfa(input: { isPlatformAdmin: boolean; roles: readonly AppRole[] }) {
-  return input.isPlatformAdmin || input.roles.includes("admin");
+/** Precisa de MFA quem é SuperAdmin ou tem, em alguma gráfica, perfil admin/sensível. */
+export function requiresMfa(input: {
+  isPlatformAdmin: boolean;
+  roles: readonly { isAdmin: boolean; permissions: readonly string[] }[];
+}) {
+  return input.isPlatformAdmin || input.roles.some(roleRequiresMfa);
 }
 
 export const slugSchema = z

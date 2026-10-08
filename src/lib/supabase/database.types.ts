@@ -4,8 +4,6 @@
  */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-type AppRole = "admin" | "atendimento" | "designer" | "producao" | "expedicao" | "financeiro";
-
 export type Database = {
   public: {
     Tables: {
@@ -48,6 +46,7 @@ export type Database = {
           username: string;
           full_name: string;
           email: string | null;
+          must_change_password: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -56,6 +55,7 @@ export type Database = {
           username: string;
           full_name: string;
           email?: string | null;
+          must_change_password?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -64,6 +64,7 @@ export type Database = {
           username?: string;
           full_name?: string;
           email?: string | null;
+          must_change_password?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -73,7 +74,7 @@ export type Database = {
         Row: {
           organization_id: string;
           user_id: string;
-          role: AppRole;
+          role_id: string;
           active: boolean;
           created_at: string;
           updated_at: string;
@@ -81,7 +82,7 @@ export type Database = {
         Insert: {
           organization_id: string;
           user_id: string;
-          role: AppRole;
+          role_id: string;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -89,7 +90,7 @@ export type Database = {
         Update: {
           organization_id?: string;
           user_id?: string;
-          role?: AppRole;
+          role_id?: string;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -107,6 +108,54 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "organization_members_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "organization_roles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      organization_roles: {
+        Row: {
+          id: string;
+          organization_id: string;
+          name: string;
+          description: string | null;
+          permissions: string[];
+          is_admin: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          name: string;
+          description?: string | null;
+          permissions?: string[];
+          is_admin?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          name?: string;
+          description?: string | null;
+          permissions?: string[];
+          is_admin?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "organization_roles_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
@@ -167,7 +216,7 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
-    Enums: { app_role: AppRole };
+    Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
 };

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { requireOrg } from "@/lib/auth/dal";
 import { exclusiveMembers } from "@/lib/auth/people";
-import { isAppRole, ROLE_LABELS } from "@/lib/auth/roles";
+import { can, expandPermissions, roleRequiresMfa } from "@/lib/auth/permissions";
 import { formatDate, initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "cn";
@@ -22,6 +22,7 @@ import {
   EditMemberDialog,
   ResetMfaDialog,
   ResetPasswordDialog,
+  type RoleOption,
   type TeamMember,
 } from "./user-dialogs";
 
@@ -59,16 +60,40 @@ function StatusPill({ active }: { active: boolean }) {
 }
 
 async function UsersContent() {
-  const { session, membership } = await requireOrg(["admin"]);
+  const { session, membership } = await requireOrg("equipe.ver");
+  const canManage = can(membership.permissions, "equipe.gerenciar");
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("organization_members")
-    .select("user_id, role, active, created_at, profiles(username, full_name, email)")
-    .eq("organization_id", membership.organizationId)
-    .order("active", { ascending: false })
-    .order("created_at");
+  const [{ data, error }, { data: roleRows }] = await Promise.all([
+    supabase
+      .from("organization_members")
+      .select(
+        "user_id, role_id, active, created_at, profiles(username, full_name, email), organization_roles(name, is_admin, permissions)",
+      )
+      .eq("organization_id", membership.organizationId),
+    supabase
+      .from("organization_roles")
+      .select("id, name, description, is_admin, permissions")
+      .eq("organization_id", membership.organizationId)
+      .order("is_admin", { ascending: false })
+      .order("name"),
+  ]);
 
-  const rows = (data ?? []).filter((row) => row.profiles && isAppRole(row.role));
+  // Só aparecem para escolha os perfis que quem está logado pode atribuir (o banco também confere).
+  const roles: RoleOption[] = (roleRows ?? [])
+    .filter(
+      (r) =>
+        membership.isAdmin ||
+        (!r.is_admin &&
+          expandPermissions(r.permissions).every((p) => membership.permissions.includes(p))),
+    )
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      requiresMfa: roleRequiresMfa({ isAdmin: r.is_admin, permissions: r.permissions }),
+    }));
+
+  const rows = (data ?? []).filter((row) => row.profiles && row.organization_roles);
   const exclusive = await exclusiveMembers(
     membership.organizationId,
     rows.map((row) => row.user_id),
@@ -79,7 +104,12 @@ async function UsersContent() {
       username: row.profiles!.username,
       fullName: row.profiles!.full_name,
       email: row.profiles!.email,
-      role: row.role,
+      roleId: row.role_id,
+      roleName: row.organization_roles!.name,
+      requiresMfa: roleRequiresMfa({
+        isAdmin: row.organization_roles!.is_admin,
+        permissions: row.organization_roles!.permissions,
+      }),
       active: row.active,
       exclusive: exclusive.has(row.user_id),
       isSelf: row.user_id === session.id,
@@ -89,9 +119,9 @@ async function UsersContent() {
 
   const header = (
     <PageHeader
-      title="Usuários"
+      title="Equipe"
       description={`${membership.name} · ${members.filter((m) => m.active).length} ativos`}
-      actions={<CreateMemberDialog />}
+      actions={canManage ? <CreateMemberDialog roles={roles} /> : undefined}
     />
   );
 
@@ -104,13 +134,15 @@ async function UsersContent() {
     );
   }
 
-  const actions = (member: TeamMember) => (
-    <div className="flex flex-wrap justify-end gap-1">
-      {member.role === "admin" && <ResetMfaDialog member={member} />}
-      <ResetPasswordDialog member={member} />
-      <EditMemberDialog member={member} />
-    </div>
-  );
+  // Quem só tem "equipe.ver" vê a lista, sem os botões de ação.
+  const actions = (member: TeamMember) =>
+    canManage && (
+      <div className="flex flex-wrap justify-end gap-1">
+        {member.requiresMfa && <ResetMfaDialog member={member} />}
+        <ResetPasswordDialog member={member} />
+        <EditMemberDialog member={member} roles={roles} />
+      </div>
+    );
 
   const identity = (member: TeamMember) => (
     <>
@@ -143,7 +175,7 @@ async function UsersContent() {
               <StatusPill active={member.active} />
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">{ROLE_LABELS[member.role]}</span>
+              <span className="text-sm text-muted-foreground">{member.roleName}</span>
               {actions(member)}
             </div>
           </li>
@@ -183,7 +215,7 @@ async function UsersContent() {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{ROLE_LABELS[member.role]}</TableCell>
+                <TableCell>{member.roleName}</TableCell>
                 <TableCell>
                   <StatusPill active={member.active} />
                 </TableCell>

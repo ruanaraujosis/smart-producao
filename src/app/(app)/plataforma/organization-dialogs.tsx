@@ -183,9 +183,9 @@ export function CreateOrganizationDialog() {
           </div>
           <Field
             id="adm-password"
-            label="Senha inicial"
+            label="Senha provisória"
             error={errors.adminPassword}
-            hint="O admin vai configurar o MFA no primeiro acesso."
+            hint="No 1º acesso o admin cria a própria senha e configura o MFA. Se o e-mail já tiver conta, este campo é ignorado."
           >
             <Input
               id="adm-password"

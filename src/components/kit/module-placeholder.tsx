@@ -21,6 +21,6 @@ export function ModulePlaceholder({ href, description }: { href: string; descrip
 
 async function Guarded({ href }: { href: string }) {
   const item = findNavItem(href)!;
-  await requireOrg(item.roles);
-  return <ComingSoon title={item.label} phase={item.phase} />;
+  await requireOrg(item.permission);
+  return <ComingSoon title={item.label} />;
 }

@@ -12,6 +12,8 @@ export type PersonInput = {
   fullName: string;
   email?: string;
   password: string;
+  /** Senha definida por outra pessoa: obriga a criar a própria no 1º login. */
+  mustChangePassword: boolean;
 };
 
 export type PersonLookup =
@@ -65,6 +67,7 @@ export async function createPerson(
     username: input.username,
     full_name: input.fullName,
     email: input.email ?? null,
+    must_change_password: input.mustChangePassword,
   });
   if (profileError) {
     await admin.auth.admin.deleteUser(data.user.id);
@@ -119,8 +122,23 @@ export async function recordAudit(entry: {
   });
 }
 
+/** Senha nova definida por um admin: vira provisória (a pessoa cria a própria no próximo login). */
 export async function resetPassword(userId: string, password: string) {
-  const { error } = await createAdminClient().auth.admin.updateUserById(userId, { password });
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error) return false;
+  const { error: flagError } = await admin
+    .from("profiles")
+    .update({ must_change_password: true })
+    .eq("id", userId);
+  return !flagError;
+}
+
+export async function clearMustChangePassword(userId: string) {
+  const { error } = await createAdminClient()
+    .from("profiles")
+    .update({ must_change_password: false })
+    .eq("id", userId);
   return !error;
 }
 

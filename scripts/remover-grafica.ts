@@ -47,14 +47,14 @@ async function main() {
 
   const { data: members } = await db
     .from("organization_members")
-    .select("user_id, role, profiles(username, full_name)")
+    .select("user_id, profiles(username, full_name), organization_roles(name)")
     .eq("organization_id", org.id);
 
   console.log(`Gráfica: ${org.name} (${org.slug}) — ${org.active ? "ativa" : "desativada"}`);
   console.log(`Vínculos que serão removidos: ${members?.length ?? 0}`);
   for (const m of members ?? []) {
     console.log(
-      `  • ${m.profiles?.username ?? m.user_id} — ${m.profiles?.full_name ?? ""} (${m.role})`,
+      `  • ${m.profiles?.username ?? m.user_id} — ${m.profiles?.full_name ?? ""} (${m.organization_roles?.name ?? "sem perfil"})`,
     );
   }
 

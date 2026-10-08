@@ -103,10 +103,18 @@ supabase/migrations/  schema versionado (nunca alterar o banco manualmente)
 create policy "Membros leem" on public.pedidos for select to authenticated
   using ((select private.is_member(organization_id)));
 create policy "Atendimento cria" on public.pedidos for insert to authenticated
-  with check ((select private.has_org_role(organization_id, 'atendimento')));
+  with check ((select private.has_permission(organization_id, 'pedidos.gerenciar')));
 ```
 
-Na aplicação, use `requireOrg([...perfis])` (`src/lib/auth/dal.ts`) e filtre as consultas pela `membership.organizationId`.
+Na aplicação, use `requireOrg("pedidos.ver")` (`src/lib/auth/dal.ts`) e filtre as consultas pela `membership.organizationId`.
+
+### Perfis configuráveis
+
+Cada gráfica cria seus perfis em _Configurações → Perfis de acesso_, marcando **Ver** e **Gerenciar** por módulo (gerenciar inclui ver). O perfil **Administrador** é criado automaticamente, tem tudo e não pode ser alterado. Toda gráfica nova já vem com Atendimento, Designer, Produção, Expedição e Financeiro, que podem ser editados. Regras garantidas pelo banco:
+
+- ninguém concede permissões que não tem, nem edita o próprio perfil (exceto o Administrador);
+- perfis com Administrador, `equipe.gerenciar`, `configuracoes.gerenciar` ou `financeiro.gerenciar` exigem MFA;
+- senha criada ou redefinida por um admin é **provisória**: no próximo login a pessoa cria a própria (`/criar-senha`).
 
 **Auditoria:** a tabela `audit_log` registra quem alterou o quê e quando. Para auditar uma tabela nova:
 

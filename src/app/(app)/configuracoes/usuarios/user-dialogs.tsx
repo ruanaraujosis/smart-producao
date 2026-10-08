@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { APP_ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import {
   createMember,
   resetMemberMfa,
@@ -36,12 +35,23 @@ import {
 } from "./actions";
 import { createMemberSchema, resetPasswordSchema, updateMemberSchema } from "./schemas";
 
+/** Perfil que quem está logado pode atribuir (o banco também confere). */
+export type RoleOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  requiresMfa: boolean;
+};
+
 export type TeamMember = {
   userId: string;
   username: string;
   fullName: string;
   email: string | null;
-  role: AppRole;
+  roleId: string;
+  roleName: string;
+  /** O perfil exige MFA (admin ou permissões sensíveis). */
+  requiresMfa: boolean;
   active: boolean;
   /** Trabalha só nesta gráfica: o admin pode trocar nome, senha e MFA. */
   exclusive: boolean;
@@ -99,12 +109,14 @@ function useSubmit(onDone: () => void) {
 
 function RoleSelect({
   id,
+  roles,
   value,
   onChange,
   disabled,
   error,
 }: {
   id: string;
+  roles: readonly RoleOption[];
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -116,9 +128,12 @@ function RoleSelect({
         <SelectValue placeholder="Escolha o perfil" />
       </SelectTrigger>
       <SelectContent>
-        {APP_ROLES.map((role) => (
-          <SelectItem key={role} value={role}>
-            {ROLE_LABELS[role]}
+        {roles.map((role) => (
+          <SelectItem key={role.id} value={role.id}>
+            {role.name}
+            {role.requiresMfa && (
+              <span className="text-xs text-muted-foreground"> · exige MFA</span>
+            )}
           </SelectItem>
         ))}
       </SelectContent>
@@ -126,7 +141,7 @@ function RoleSelect({
   );
 }
 
-export function CreateMemberDialog() {
+export function CreateMemberDialog({ roles }: { roles: readonly RoleOption[] }) {
   const [open, setOpen] = useState(false);
   const form = useForm({
     resolver: zodResolver(createMemberSchema),
@@ -134,7 +149,7 @@ export function CreateMemberDialog() {
       fullName: "",
       username: "",
       email: "",
-      role: undefined,
+      roleId: "",
       password: "",
       confirmPassword: "",
     },
@@ -144,7 +159,8 @@ export function CreateMemberDialog() {
     setOpen(false);
     form.reset();
   });
-  const role = useWatch({ control: form.control, name: "role" });
+  const roleId = useWatch({ control: form.control, name: "roleId" });
+  const selectedRole = roles.find((r) => r.id === roleId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -211,24 +227,30 @@ export function CreateMemberDialog() {
           <Field
             id="new-role"
             label="Perfil nesta gráfica"
-            error={errors.role}
-            hint={role ? ROLE_DESCRIPTIONS[role] : undefined}
+            error={errors.roleId}
+            hint={selectedRole?.description ?? undefined}
           >
             <Controller
               control={form.control}
-              name="role"
+              name="roleId"
               render={({ field }) => (
                 <RoleSelect
                   id="new-role"
+                  roles={roles}
                   value={field.value ?? ""}
                   onChange={field.onChange}
-                  error={errors.role}
+                  error={errors.roleId}
                 />
               )}
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="new-password" label="Senha inicial" error={errors.password}>
+            <Field
+              id="new-password"
+              label="Senha provisória"
+              error={errors.password}
+              hint="A pessoa cria a própria no primeiro acesso."
+            >
               <Input
                 id="new-password"
                 type="password"
@@ -259,14 +281,33 @@ export function CreateMemberDialog() {
   );
 }
 
-export function EditMemberDialog({ member }: { member: TeamMember }) {
+export function EditMemberDialog({
+  member,
+  roles,
+}: {
+  member: TeamMember;
+  roles: readonly RoleOption[];
+}) {
   const [open, setOpen] = useState(false);
   const defaults = {
     userId: member.userId,
     fullName: member.fullName,
-    role: member.role,
+    roleId: member.roleId,
     active: member.active,
   };
+  // O perfil atual sempre aparece; se quem edita não pode atribuí-lo, a troca fica bloqueada.
+  const canAssignCurrent = roles.some((r) => r.id === member.roleId);
+  const options = canAssignCurrent
+    ? roles
+    : [
+        {
+          id: member.roleId,
+          name: member.roleName,
+          description: null,
+          requiresMfa: member.requiresMfa,
+        },
+        ...roles,
+      ];
   const form = useForm({ resolver: zodResolver(updateMemberSchema), defaultValues: defaults });
   const { errors } = form.formState;
   const { pending, run } = useSubmit(() => setOpen(false));
@@ -317,19 +358,26 @@ export function EditMemberDialog({ member }: { member: TeamMember }) {
           <Field
             id={`${prefix}-role`}
             label="Perfil nesta gráfica"
-            error={errors.role}
-            hint={member.isSelf ? "Você não pode alterar o próprio perfil." : undefined}
+            error={errors.roleId}
+            hint={
+              member.isSelf
+                ? "Você não pode alterar o próprio perfil."
+                : canAssignCurrent
+                  ? undefined
+                  : "Este perfil tem permissões que o seu não tem; só um administrador pode trocá-lo."
+            }
           >
             <Controller
               control={form.control}
-              name="role"
+              name="roleId"
               render={({ field }) => (
                 <RoleSelect
                   id={`${prefix}-role`}
+                  roles={options}
                   value={field.value}
                   onChange={field.onChange}
-                  disabled={member.isSelf}
-                  error={errors.role}
+                  disabled={member.isSelf || !canAssignCurrent}
+                  error={errors.roleId}
                 />
               )}
             />
@@ -399,8 +447,8 @@ export function ResetPasswordDialog({ member }: { member: TeamMember }) {
         <DialogHeader>
           <DialogTitle>Redefinir senha</DialogTitle>
           <DialogDescription>
-            Nova senha para <strong>{member.fullName}</strong>. Depois, peça para a pessoa trocar em
-            “Meu perfil”.
+            Senha provisória para <strong>{member.fullName}</strong>. No próximo login, a pessoa
+            será obrigada a criar a própria senha.
           </DialogDescription>
         </DialogHeader>
         <form

@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/kit/page-header";
 import { IconChip } from "@/components/kit/stat-card";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { requireUser } from "@/lib/auth/dal";
-import { ROLE_LABELS } from "@/lib/auth/roles";
 import { NameForm, PasswordForm } from "./profile-forms";
 
 export const metadata = { title: "Meu perfil" };
@@ -88,7 +87,7 @@ async function AccountSection() {
                 key={m.organizationId}
                 className="inline-flex h-7 items-center rounded-full bg-accent px-3 text-xs font-medium text-accent-foreground"
               >
-                {m.name} · {ROLE_LABELS[m.role]}
+                {m.name} · {m.roleName}
               </span>
             ))}
           </dd>

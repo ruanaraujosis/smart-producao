@@ -5,7 +5,6 @@ import { BottomNav } from "@/components/shell/bottom-nav";
 import { SidebarNav, SidebarNavSkeleton } from "@/components/shell/sidebar-nav";
 import { UserMenu } from "@/components/shell/user-menu";
 import { getShellContext } from "@/lib/auth/dal";
-import { ROLE_LABELS } from "@/lib/auth/roles";
 
 /**
  * Layout das áreas logadas. A moldura (header, sidebar) é estática e entra no
@@ -77,9 +76,7 @@ async function HeaderUser() {
     <UserMenu
       fullName={session.fullName}
       username={session.username}
-      subtitle={
-        membership ? ROLE_LABELS[membership.role] : session.isPlatformAdmin ? "SuperAdmin" : ""
-      }
+      subtitle={membership ? membership.roleName : session.isPlatformAdmin ? "SuperAdmin" : ""}
       organizationName={membership?.name}
       canSwitchOrganization={session.memberships.length > 1}
       isPlatformAdmin={session.isPlatformAdmin}
@@ -89,10 +86,14 @@ async function HeaderUser() {
 
 async function Sidebar() {
   const { session, membership } = await getShellContext();
-  return <SidebarNav role={membership?.role} isPlatformAdmin={session.isPlatformAdmin} />;
+  return (
+    <SidebarNav permissions={membership?.permissions} isPlatformAdmin={session.isPlatformAdmin} />
+  );
 }
 
 async function MobileNav() {
   const { session, membership } = await getShellContext();
-  return <BottomNav role={membership?.role} isPlatformAdmin={session.isPlatformAdmin} />;
+  return (
+    <BottomNav permissions={membership?.permissions} isPlatformAdmin={session.isPlatformAdmin} />
+  );
 }

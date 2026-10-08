@@ -50,6 +50,7 @@ export async function createOrganization(input: CreateOrganizationInput): Promis
       fullName: data.adminFullName,
       email: data.adminEmail,
       password: data.adminPassword,
+      mustChangePassword: true,
     });
     if ("error" in created) {
       await supabase.from("organizations").update({ active: false }).eq("id", org.id);
@@ -59,9 +60,18 @@ export async function createOrganization(input: CreateOrganizationInput): Promis
     createdNow = true;
   }
 
-  const { error: memberError } = await supabase
-    .from("organization_members")
-    .insert({ organization_id: org.id, user_id: userId, role: "admin" });
+  // O perfil Administrador é criado automaticamente junto com a gráfica.
+  const { data: adminRole } = await supabase
+    .from("organization_roles")
+    .select("id")
+    .eq("organization_id", org.id)
+    .eq("is_admin", true)
+    .single();
+  const { error: memberError } = adminRole
+    ? await supabase
+        .from("organization_members")
+        .insert({ organization_id: org.id, user_id: userId, role_id: adminRole.id })
+    : { error: new Error("Perfil Administrador não encontrado.") };
   if (memberError) {
     if (createdNow) await deletePerson(userId);
     await supabase.from("organizations").update({ active: false }).eq("id", org.id);

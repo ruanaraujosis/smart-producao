@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  effectivePermissions,
   isValidCnpj,
   requiresMfa,
   resolveActiveMembership,
@@ -11,13 +12,19 @@ const centro: Membership = {
   organizationId: "a",
   slug: "centro",
   name: "Gráfica Centro",
-  role: "admin",
+  roleId: "r1",
+  roleName: "Administrador",
+  isAdmin: true,
+  permissions: [],
 };
 const norte: Membership = {
   organizationId: "b",
   slug: "norte",
   name: "Gráfica Norte",
-  role: "producao",
+  roleId: "r2",
+  roleName: "Produção",
+  isAdmin: false,
+  permissions: ["pcp.ver", "pcp.gerenciar"],
 };
 
 describe("resolveActiveMembership", () => {
@@ -43,15 +50,29 @@ describe("resolveActiveMembership", () => {
   });
 });
 
+const producao = { isAdmin: false, permissions: ["pcp.gerenciar"] };
+const admin = { isAdmin: true, permissions: [] };
+const gestorEquipe = { isAdmin: false, permissions: ["equipe.gerenciar"] };
+
 describe("requiresMfa", () => {
-  it("exige para admin de qualquer gráfica", () => {
-    expect(requiresMfa({ isPlatformAdmin: false, roles: ["producao", "admin"] })).toBe(true);
+  it("exige para quem é Administrador em alguma gráfica", () => {
+    expect(requiresMfa({ isPlatformAdmin: false, roles: [producao, admin] })).toBe(true);
+  });
+  it("exige para perfis com permissões sensíveis", () => {
+    expect(requiresMfa({ isPlatformAdmin: false, roles: [gestorEquipe] })).toBe(true);
   });
   it("exige para SuperAdmin", () => {
     expect(requiresMfa({ isPlatformAdmin: true, roles: [] })).toBe(true);
   });
-  it("não exige para os demais perfis", () => {
-    expect(requiresMfa({ isPlatformAdmin: false, roles: ["designer", "expedicao"] })).toBe(false);
+  it("não exige para perfis operacionais", () => {
+    expect(requiresMfa({ isPlatformAdmin: false, roles: [producao] })).toBe(false);
+  });
+});
+
+describe("effectivePermissions", () => {
+  it("Administrador tem todas; os demais têm as do perfil, com gerenciar incluindo ver", () => {
+    expect(effectivePermissions(admin).length).toBeGreaterThan(10);
+    expect(effectivePermissions(producao)).toEqual(["pcp.ver", "pcp.gerenciar"]);
   });
 });
 

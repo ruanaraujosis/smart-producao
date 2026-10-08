@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { setNewPassword } from "./actions";
 
-export function NewPasswordForm() {
+export function NewPasswordForm({
+  from = "/redefinir-senha",
+}: {
+  from?: "/redefinir-senha" | "/criar-senha";
+}) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -18,7 +22,7 @@ export function NewPasswordForm() {
     event.preventDefault();
     setError(undefined);
     startTransition(async () => {
-      const result = await setNewPassword({ password, confirmPassword });
+      const result = await setNewPassword({ password, confirmPassword, from });
       if (result?.error) setError(result.error);
     });
   };

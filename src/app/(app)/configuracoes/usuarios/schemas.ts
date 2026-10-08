@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { APP_ROLES } from "@/lib/auth/roles";
 import { emailSchema, passwordSchema, usernameSchema } from "@/lib/auth/username";
 
 const fullName = z.string().trim().min(2, "Informe o nome completo.").max(120, "Nome muito longo.");
-const role = z.enum(APP_ROLES, { error: "Escolha o perfil de acesso." });
+const roleId = z.uuid({ error: "Escolha o perfil de acesso." });
 const optionalEmail = z
   .string()
   .trim()
@@ -15,7 +14,7 @@ export const createMemberSchema = z
     fullName,
     username: usernameSchema,
     email: optionalEmail,
-    role,
+    roleId,
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -27,7 +26,7 @@ export const createMemberSchema = z
 export const updateMemberSchema = z.object({
   userId: z.uuid(),
   fullName,
-  role,
+  roleId,
   active: z.boolean(),
 });
 

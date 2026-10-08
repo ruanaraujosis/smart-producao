@@ -82,6 +82,7 @@ async function main() {
     const profile = await db
       .from("profiles")
       .insert({ id: userId, username, full_name: fullName, email: email ?? null });
+    // Quem roda este script define a própria senha: não é provisória.
     if (profile.error) {
       await db.auth.admin.deleteUser(userId);
       throw profile.error;
@@ -90,9 +91,16 @@ async function main() {
   }
 
   // 3. Admin da gráfica + SuperAdmin da plataforma
+  const { data: adminRole, error: roleError } = await db
+    .from("organization_roles")
+    .select("id")
+    .eq("organization_id", org.id)
+    .eq("is_admin", true)
+    .single();
+  if (roleError || !adminRole) throw roleError ?? new Error("Perfil Administrador não encontrado.");
   const member = await db
     .from("organization_members")
-    .upsert({ organization_id: org.id, user_id: userId, role: "admin", active: true });
+    .upsert({ organization_id: org.id, user_id: userId, role_id: adminRole.id, active: true });
   if (member.error) throw member.error;
   const platform = await db.from("platform_admins").upsert({ user_id: userId });
   if (platform.error) throw platform.error;

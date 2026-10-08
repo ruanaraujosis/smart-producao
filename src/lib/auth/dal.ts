@@ -5,11 +5,12 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import {
   ACTIVE_ORG_COOKIE,
+  effectivePermissions,
   requiresMfa,
   resolveActiveMembership,
   type Membership,
 } from "./organization";
-import { hasRole, isAppRole, type AppRole } from "./roles";
+import { can, type Permission } from "./permissions";
 
 export type Session = {
   id: string;
@@ -22,6 +23,8 @@ export type Session = {
   /** Gráficas ativas em que a pessoa trabalha. */
   memberships: Membership[];
   mfaRequired: boolean;
+  /** Senha definida por um admin: precisa criar a própria antes de continuar. */
+  mustChangePassword: boolean;
 };
 
 /**
@@ -37,12 +40,14 @@ export const getSession = cache(async (): Promise<Session | null> => {
   const [profileResult, membersResult, platformResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, username, full_name, email")
+      .select("id, username, full_name, email, must_change_password")
       .eq("id", claims.sub)
       .maybeSingle(),
     supabase
       .from("organization_members")
-      .select("role, organizations(id, slug, name)")
+      .select(
+        "role_id, organizations(id, slug, name), organization_roles(id, name, is_admin, permissions)",
+      )
       .eq("user_id", claims.sub)
       .eq("active", true),
     supabase.from("platform_admins").select("user_id").eq("user_id", claims.sub).maybeSingle(),
@@ -53,19 +58,37 @@ export const getSession = cache(async (): Promise<Session | null> => {
 
   const rows = membersResult.data ?? [];
   const isPlatformAdmin = Boolean(platformResult.data);
-  // Antes do MFA o banco esconde as gráficas em que a pessoa é admin; o perfil, não.
-  const memberships = rows.flatMap((row) =>
-    row.organizations && isAppRole(row.role)
+  const roles = rows.flatMap((row) =>
+    row.organization_roles
       ? [
           {
-            organizationId: row.organizations.id,
-            slug: row.organizations.slug,
-            name: row.organizations.name,
-            role: row.role,
+            isAdmin: row.organization_roles.is_admin,
+            permissions: row.organization_roles.permissions,
           },
         ]
       : [],
   );
+
+  // Antes do MFA o banco esconde as gráficas de perfis sensíveis; o próprio perfil, não.
+  const memberships: Membership[] = rows.flatMap((row) => {
+    const org = row.organizations;
+    const role = row.organization_roles;
+    if (!org || !role) return [];
+    return [
+      {
+        organizationId: org.id,
+        slug: org.slug,
+        name: org.name,
+        roleId: role.id,
+        roleName: role.name,
+        isAdmin: role.is_admin,
+        permissions: effectivePermissions({
+          isAdmin: role.is_admin,
+          permissions: role.permissions,
+        }),
+      },
+    ];
+  });
 
   return {
     id: profile.id,
@@ -75,15 +98,17 @@ export const getSession = cache(async (): Promise<Session | null> => {
     aal: claims.aal === "aal2" ? "aal2" : "aal1",
     isPlatformAdmin,
     memberships,
-    mfaRequired: requiresMfa({ isPlatformAdmin, roles: rows.map((row) => row.role) }),
+    mfaRequired: requiresMfa({ isPlatformAdmin, roles }),
+    mustChangePassword: profile.must_change_password,
   };
 });
 
-/** Logado e, se for admin, com o segundo fator confirmado. */
+/** Logado, com o segundo fator confirmado (se exigido) e com senha própria. */
 export async function requireUser() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.mfaRequired && session.aal !== "aal2") redirect("/mfa");
+  if (session.mustChangePassword) redirect("/criar-senha");
   return session;
 }
 
@@ -100,10 +125,10 @@ export async function getShellContext() {
 }
 
 /**
- * Exige uma gráfica ativa e, opcionalmente, um dos perfis nela
- * (lista vazia = qualquer membro). O admin da gráfica passa em todas.
+ * Exige uma gráfica ativa e, opcionalmente, uma permissão nela
+ * (uma lista = basta ter uma). O Administrador da gráfica tem todas.
  */
-export async function requireOrg(allowed: readonly AppRole[] = []) {
+export async function requireOrg(required?: Permission | readonly Permission[]) {
   const session = await requireUser();
   const membership = await getActiveMembership(session);
 
@@ -111,7 +136,7 @@ export async function requireOrg(allowed: readonly AppRole[] = []) {
     if (session.memberships.length > 1) redirect("/selecionar-empresa");
     redirect(session.isPlatformAdmin ? "/plataforma" : "/sem-acesso");
   }
-  if (allowed.length > 0 && !hasRole(membership.role, allowed)) redirect("/inicio");
+  if (required && !can(membership.permissions, required)) redirect("/inicio");
 
   return { session, membership };
 }

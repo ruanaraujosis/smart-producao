@@ -11,7 +11,7 @@ export function SidebarNav(context: NavContext) {
 
   return (
     <nav aria-label="Menu principal" className="flex flex-col gap-1">
-      {items.map(({ href, label, icon: Icon, phase }) => {
+      {items.map(({ href, label, icon: Icon, comingSoon }) => {
         const active = isActivePath(pathname, href);
         return (
           <Link
@@ -28,7 +28,7 @@ export function SidebarNav(context: NavContext) {
           >
             <Icon className={cn("size-5", active && "text-primary")} aria-hidden />
             <span className="flex-1">{label}</span>
-            {phase && (
+            {comingSoon && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
                 em breve
               </span>

@@ -1,9 +1,10 @@
-import { ChevronRight, PlugZap, Tv, Users } from "lucide-react";
+import { ChevronRight, PlugZap, ShieldCheck, Tv, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/kit/page-header";
 import { IconChip, type Tone } from "@/components/kit/stat-card";
 import { requireOrg } from "@/lib/auth/dal";
+import { can, type Permission } from "@/lib/auth/permissions";
 
 export const metadata = { title: "Configurações" };
 
@@ -13,28 +14,40 @@ const SECTIONS: {
   description: string;
   icon: typeof Users;
   tone: Tone;
-  phase?: number;
+  permission: Permission;
+  comingSoon?: boolean;
 }[] = [
   {
     href: "/configuracoes/usuarios",
-    title: "Usuários e perfis",
-    description: "Cadastre a equipe, defina perfis de acesso e redefina senhas.",
+    title: "Equipe",
+    description: "Adicione pessoas, escolha o perfil de cada uma e redefina senhas.",
     icon: Users,
     tone: "primary",
+    permission: "equipe.ver",
+  },
+  {
+    href: "/configuracoes/perfis",
+    title: "Perfis de acesso",
+    description: "Crie perfis e escolha o que cada um pode ver e gerenciar.",
+    icon: ShieldCheck,
+    tone: "info",
+    permission: "equipe.ver",
   },
   {
     title: "Integrações",
     description: "Lojas da Shopee, Magalu e TikTok Shop, e saúde das sincronizações.",
     icon: PlugZap,
     tone: "teal",
-    phase: 5,
+    permission: "configuracoes.ver",
+    comingSoon: true,
   },
   {
     title: "Dispositivos de TV",
     description: "Tokens de acesso somente leitura para o painel da produção.",
     icon: Tv,
-    tone: "info",
-    phase: 4,
+    tone: "warning",
+    permission: "configuracoes.ver",
+    comingSoon: true,
   },
 ];
 
@@ -50,20 +63,19 @@ export default function ConfiguracoesPage() {
 }
 
 async function SectionsGrid() {
-  await requireOrg(["admin"]);
+  const { membership } = await requireOrg(["equipe.ver", "configuracoes.ver"]);
+  const visible = SECTIONS.filter((section) => can(membership.permissions, section.permission));
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-      {SECTIONS.map((section) => {
+      {visible.map((section) => {
         const content = (
           <>
             <IconChip icon={section.icon} tone={section.tone} />
             <div className="min-w-0 flex-1">
               <p className="font-medium">{section.title}</p>
               <p className="text-sm text-muted-foreground">{section.description}</p>
-              {section.phase && (
-                <p className="mt-2 text-xs font-medium text-muted-foreground">
-                  Fase {section.phase} · em breve
-                </p>
+              {section.comingSoon && (
+                <p className="mt-2 text-xs font-medium text-muted-foreground">Em breve</p>
               )}
             </div>
             {section.href && (
