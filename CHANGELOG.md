@@ -4,6 +4,8 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+## [0.3.0] - 2026-10-08
+
 ### Fase 3 — Pedidos + PCP + Aprovação de Artes
 
 #### Adicionado
