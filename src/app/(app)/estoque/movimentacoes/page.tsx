@@ -4,7 +4,13 @@ import { DataList, Pagination, Pill } from "@/components/kit/data-list";
 import { requireOrg } from "@/lib/auth/dal";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { parseListParams } from "@/lib/list-params";
-import { MOVEMENT_LABELS, formatQuantity, onHandDelta, type Unit } from "@/lib/stock/units";
+import {
+  MOVEMENT_LABELS,
+  UNIT_SHORT,
+  formatQuantity,
+  onHandDelta,
+  type Unit,
+} from "@/lib/stock/units";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Movimentações" };
@@ -58,7 +64,9 @@ async function Movimentacoes({ searchParams }: { searchParams: Params }) {
       item:
         m.materials?.name ??
         (m.product_variants ? `${m.product_variants.sku} · ${m.product_variants.name}` : "—"),
+      unit,
       amount: `${signed > 0 ? "+" : ""}${formatQuantity(signed, unit)}`,
+      note: [m.reason, m.reference].filter(Boolean).join(" · ") || null,
       author: m.created_by ? (nameById.get(m.created_by) ?? "—") : "Sistema",
     };
   });
@@ -76,8 +84,10 @@ async function Movimentacoes({ searchParams }: { searchParams: Params }) {
             <>
               <Pill tone={TONE[r.type]}>{MOVEMENT_LABELS[r.type]}</Pill>
               <Pill>{r.amount}</Pill>
-              {r.unit_cost !== null && <Pill>{`${formatCurrency(r.unit_cost)}/un`}</Pill>}
-              {(r.reason || r.reference) && <Pill>{r.reason ?? r.reference}</Pill>}
+              {r.unit_cost !== null && (
+                <Pill>{`${formatCurrency(r.unit_cost)}/${UNIT_SHORT[r.unit]}`}</Pill>
+              )}
+              {r.note && <Pill>{r.note}</Pill>}
             </>
           ),
         }}
@@ -91,9 +101,10 @@ async function Movimentacoes({ searchParams }: { searchParams: Params }) {
           { header: "Quantidade", cell: (r) => r.amount },
           {
             header: "Custo",
-            cell: (r) => (r.unit_cost === null ? "—" : formatCurrency(r.unit_cost)),
+            cell: (r) =>
+              r.unit_cost === null ? "—" : `${formatCurrency(r.unit_cost)}/${UNIT_SHORT[r.unit]}`,
           },
-          { header: "Motivo", cell: (r) => r.reason ?? r.reference ?? "—" },
+          { header: "Motivo", cell: (r) => r.note ?? "—" },
           { header: "Quem", cell: (r) => r.author },
         ]}
       />

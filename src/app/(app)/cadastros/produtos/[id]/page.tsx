@@ -14,12 +14,12 @@ import {
   grossMarginPct,
   type SalesChannel,
 } from "@/lib/catalog/pricing";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { bomUnitCost } from "@/lib/stock/cost";
 import { UNIT_SHORT, formatQuantity, type Unit } from "@/lib/stock/units";
 import { createClient } from "@/lib/supabase/server";
-import { FULFILLMENT_LABELS, ProductFormDialog, type ProductRow } from "../product-form";
-import { ATTRIBUTE_KEYS, ATTRIBUTE_LABELS } from "../schema";
+import { ProductFormDialog, type ProductRow } from "../product-form";
+import { ATTRIBUTE_KEYS, ATTRIBUTE_LABELS, FULFILLMENT_LABELS } from "../schema";
 import { ProductImages } from "./product-images";
 import {
   BomDialog,
@@ -220,6 +220,14 @@ async function Produto({ params }: { params: PageProps<"/cadastros/produtos/[id]
                     : [];
                 }),
               );
+              const margin = grossMarginPct(
+                channelPrice({
+                  basePrice: v.base_price,
+                  adjustmentPct: rules.balcao,
+                  override: v.overrides.balcao,
+                }),
+                cost,
+              );
               const avail = availability.get(v.id);
               const siblings = variants
                 .filter((s) => s.id !== v.id)
@@ -280,7 +288,7 @@ async function Produto({ params }: { params: PageProps<"/cadastros/produtos/[id]
                         : "Sem ficha técnica"}
                     </Pill>
                     {v.bom.length > 0 && (
-                      <Pill tone="success">{`Margem balcão: ${grossMarginPct(channelPrice({ basePrice: v.base_price, adjustmentPct: rules.balcao, override: v.overrides.balcao }), cost) ?? "—"}%`}</Pill>
+                      <Pill tone="success">{`Margem balcão: ${margin === null ? "—" : formatPercent(margin)}`}</Pill>
                     )}
                     {avail && (
                       <Pill tone={avail.available_units > 0 ? "info" : "danger"}>
@@ -298,7 +306,7 @@ async function Produto({ params }: { params: PageProps<"/cadastros/produtos/[id]
                             <span className="truncate">{m?.name ?? "Insumo inativo"}</span>
                             <span className="shrink-0 text-muted-foreground">
                               {formatQuantity(b.quantity, m?.unit as Unit | undefined)}
-                              {b.waste_pct > 0 && ` +${b.waste_pct}%`}
+                              {b.waste_pct > 0 && ` +${formatPercent(b.waste_pct)}`}
                             </span>
                           </li>
                         );
@@ -350,7 +358,7 @@ async function Produto({ params }: { params: PageProps<"/cadastros/produtos/[id]
         />
       </Section>
 
-      <Section title="Dados fiscais" description="Usados na emissão de NF-e (Fase 6).">
+      <Section title="Dados fiscais" description="Usados na emissão de NF-e.">
         <dl className="grid gap-4 text-sm sm:grid-cols-3">
           {[
             ["NCM", product.ncm],

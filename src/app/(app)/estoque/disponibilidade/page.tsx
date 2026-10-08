@@ -4,7 +4,7 @@ import { ListSkeleton } from "@/components/kit/back-link";
 import { DataList, Pill } from "@/components/kit/data-list";
 import { requireOrg } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
-import { FULFILLMENT_LABELS } from "../../cadastros/produtos/product-form";
+import { FULFILLMENT_LABELS } from "../../cadastros/produtos/schema";
 
 export const metadata = { title: "Disponibilidade" };
 

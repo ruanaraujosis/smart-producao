@@ -22,6 +22,12 @@ const digitsOrNull = (len: number, label: string) =>
       .nullable(),
   );
 
+/** Fica aqui, e não no formulário ("use client"), para os componentes de servidor lerem o valor. */
+export const FULFILLMENT_LABELS = {
+  sob_encomenda: "Sob encomenda",
+  pronta_entrega: "Pronta-entrega",
+} as const;
+
 export const productSchema = z.object({
   name: requiredText("o nome do produto"),
   category_id: optionalUuid,

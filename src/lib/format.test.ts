@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatCurrency, formatDateTime, initials } from "./format";
+import { formatCurrency, formatDateTime, formatPercent, initials } from "./format";
 
 describe("format", () => {
   it("formata reais", () => {
     expect(formatCurrency(1234.5).replace(/\s/g, " ")).toBe("R$ 1.234,50");
+  });
+
+  it("formata porcentagem com vírgula", () => {
+    expect(formatPercent(89.47)).toBe("89,47%");
+    expect(formatPercent(5)).toBe("5%");
   });
 
   it("usa o fuso de São Paulo", () => {

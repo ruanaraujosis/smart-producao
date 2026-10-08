@@ -19,11 +19,6 @@ export type ProductRow = {
   active: boolean;
 };
 
-export const FULFILLMENT_LABELS = {
-  sob_encomenda: "Sob encomenda",
-  pronta_entrega: "Pronta-entrega",
-} as const;
-
 function fields(categories: readonly FieldOption[], editing: boolean): FieldConfig[] {
   const list: FieldConfig[] = [
     {

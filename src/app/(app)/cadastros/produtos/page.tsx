@@ -9,7 +9,8 @@ import { can } from "@/lib/auth/permissions";
 import { formatCurrency } from "@/lib/format";
 import { ilikeTerm, parseListParams } from "@/lib/list-params";
 import { createClient } from "@/lib/supabase/server";
-import { FULFILLMENT_LABELS, ProductFormDialog } from "./product-form";
+import { ProductFormDialog } from "./product-form";
+import { FULFILLMENT_LABELS } from "./schema";
 
 export const metadata = { title: "Produtos" };
 

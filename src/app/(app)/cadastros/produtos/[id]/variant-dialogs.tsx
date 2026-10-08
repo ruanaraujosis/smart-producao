@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy, Loader2, Plus, Trash2 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ChannelBadge } from "@/components/kit/channel-badge";
 import { EntityFormDialog, type FieldConfig } from "@/components/kit/entity-form";
@@ -234,6 +234,7 @@ export function BomDialog({
     }));
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<BomRow[]>(initial);
+  const baseId = useId();
   const [pending, startTransition] = useTransition();
   const byId = new Map(materials.map((m) => [m.id, m]));
 
@@ -279,12 +280,14 @@ export function BomDialog({
                   className="grid grid-cols-[1fr_auto] gap-2 rounded-xl border p-3 sm:grid-cols-[1fr_7rem_6rem_auto] sm:items-end"
                 >
                   <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
-                    <Label className="text-xs">Insumo</Label>
+                    <Label htmlFor={`${baseId}-${i}-material`} className="text-xs">
+                      Insumo
+                    </Label>
                     <Select
                       value={row.material_id}
                       onValueChange={(v) => update(i, { material_id: v })}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id={`${baseId}-${i}-material`} className="w-full">
                         <SelectValue placeholder="Escolha o insumo" />
                       </SelectTrigger>
                       <SelectContent>
@@ -297,16 +300,22 @@ export function BomDialog({
                     </Select>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Qtd {m ? `(${UNIT_SHORT[m.unit]})` : ""}</Label>
+                    <Label htmlFor={`${baseId}-${i}-qty`} className="text-xs">
+                      Qtd {m ? `(${UNIT_SHORT[m.unit]})` : ""}
+                    </Label>
                     <Input
+                      id={`${baseId}-${i}-qty`}
                       inputMode="decimal"
                       value={row.quantity}
                       onChange={(e) => update(i, { quantity: e.target.value })}
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Perda %</Label>
+                    <Label htmlFor={`${baseId}-${i}-waste`} className="text-xs">
+                      Perda %
+                    </Label>
                     <Input
+                      id={`${baseId}-${i}-waste`}
                       inputMode="decimal"
                       value={row.waste_pct}
                       onChange={(e) => update(i, { waste_pct: e.target.value })}

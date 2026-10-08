@@ -13,6 +13,13 @@ export function formatCurrency(value: number) {
   return currency.format(value);
 }
 
+const percent = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 2 });
+
+/** Recebe o valor já em pontos percentuais (12.5 → "12,5%"). */
+export function formatPercent(value: number) {
+  return `${percent.format(value)}%`;
+}
+
 export function formatDateTime(value: string | Date) {
   return dateTime.format(typeof value === "string" ? new Date(value) : value);
 }
