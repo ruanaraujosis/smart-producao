@@ -7,6 +7,488 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      order_counters: {
+        Row: {
+          organization_id: string;
+          last_number: number;
+        };
+        Insert: {
+          organization_id: string;
+          last_number?: number;
+        };
+        Update: {
+          organization_id?: string;
+          last_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_counters_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      orders: {
+        Row: {
+          id: string;
+          organization_id: string;
+          number: number;
+          channel: Database["public"]["Enums"]["sales_channel"];
+          status: Database["public"]["Enums"]["order_status"];
+          customer_id: string | null;
+          customer_name: string;
+          customer_phone: string | null;
+          needs_art: boolean;
+          due_date: string | null;
+          payment_method_id: string | null;
+          subtotal: number;
+          discount: number;
+          shipping: number;
+          total: number;
+          notes: string | null;
+          tracking_code: string | null;
+          external_id: string | null;
+          cancel_reason: string | null;
+          status_changed_at: string;
+          approved_at: string | null;
+          shipped_at: string | null;
+          delivered_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          number?: number;
+          channel?: Database["public"]["Enums"]["sales_channel"];
+          status?: Database["public"]["Enums"]["order_status"];
+          customer_id?: string | null;
+          customer_name: string;
+          customer_phone?: string | null;
+          needs_art?: boolean;
+          due_date?: string | null;
+          payment_method_id?: string | null;
+          subtotal?: number;
+          discount?: number;
+          shipping?: number;
+          total?: number;
+          notes?: string | null;
+          tracking_code?: string | null;
+          external_id?: string | null;
+          cancel_reason?: string | null;
+          status_changed_at?: string;
+          approved_at?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          number?: number;
+          channel?: Database["public"]["Enums"]["sales_channel"];
+          status?: Database["public"]["Enums"]["order_status"];
+          customer_id?: string | null;
+          customer_name?: string;
+          customer_phone?: string | null;
+          needs_art?: boolean;
+          due_date?: string | null;
+          payment_method_id?: string | null;
+          subtotal?: number;
+          discount?: number;
+          shipping?: number;
+          total?: number;
+          notes?: string | null;
+          tracking_code?: string | null;
+          external_id?: string | null;
+          cancel_reason?: string | null;
+          status_changed_at?: string;
+          approved_at?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "orders_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "orders_payment_method_id_fkey";
+            columns: ["payment_method_id"];
+            isOneToOne: false;
+            referencedRelation: "payment_methods";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_id: string;
+          variant_id: string | null;
+          description: string;
+          quantity: number;
+          unit_price: number;
+          stock_state: Database["public"]["Enums"]["order_item_stock"];
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_id: string;
+          variant_id?: string | null;
+          description: string;
+          quantity: number;
+          unit_price: number;
+          stock_state?: Database["public"]["Enums"]["order_item_stock"];
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_id?: string;
+          variant_id?: string | null;
+          description?: string;
+          quantity?: number;
+          unit_price?: number;
+          stock_state?: Database["public"]["Enums"]["order_item_stock"];
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_items_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_events: {
+        Row: {
+          id: number;
+          organization_id: string;
+          order_id: string;
+          type: Database["public"]["Enums"]["order_event_type"];
+          from_status: Database["public"]["Enums"]["order_status"] | null;
+          to_status: Database["public"]["Enums"]["order_status"] | null;
+          message: string | null;
+          actor_id: string | null;
+          actor_label: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: never;
+          organization_id: string;
+          order_id: string;
+          type: Database["public"]["Enums"]["order_event_type"];
+          from_status?: Database["public"]["Enums"]["order_status"] | null;
+          to_status?: Database["public"]["Enums"]["order_status"] | null;
+          message?: string | null;
+          actor_id?: string | null;
+          actor_label?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: never;
+          organization_id?: string;
+          order_id?: string;
+          type?: Database["public"]["Enums"]["order_event_type"];
+          from_status?: Database["public"]["Enums"]["order_status"] | null;
+          to_status?: Database["public"]["Enums"]["order_status"] | null;
+          message?: string | null;
+          actor_id?: string | null;
+          actor_label?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_events_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_events_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      art_links: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_id: string;
+          token: string;
+          expires_at: string;
+          revoked_at: string | null;
+          last_access_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_id: string;
+          token?: string;
+          expires_at?: string;
+          revoked_at?: string | null;
+          last_access_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_id?: string;
+          token?: string;
+          expires_at?: string;
+          revoked_at?: string | null;
+          last_access_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "art_links_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "art_links_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      art_files: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_id: string;
+          path: string;
+          file_name: string;
+          size_bytes: number | null;
+          mime_type: string | null;
+          note: string | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_id: string;
+          path: string;
+          file_name: string;
+          size_bytes?: number | null;
+          mime_type?: string | null;
+          note?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_id?: string;
+          path?: string;
+          file_name?: string;
+          size_bytes?: number | null;
+          mime_type?: string | null;
+          note?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "art_files_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "art_files_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      art_versions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_id: string;
+          version: number;
+          proof_path: string;
+          proof_mime: string;
+          final_path: string | null;
+          final_name: string | null;
+          note: string | null;
+          status: Database["public"]["Enums"]["art_version_status"];
+          uploaded_by: string | null;
+          created_at: string;
+          reviewed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_id: string;
+          version?: number;
+          proof_path: string;
+          proof_mime: string;
+          final_path?: string | null;
+          final_name?: string | null;
+          note?: string | null;
+          status?: Database["public"]["Enums"]["art_version_status"];
+          uploaded_by?: string | null;
+          created_at?: string;
+          reviewed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_id?: string;
+          version?: number;
+          proof_path?: string;
+          proof_mime?: string;
+          final_path?: string | null;
+          final_name?: string | null;
+          note?: string | null;
+          status?: Database["public"]["Enums"]["art_version_status"];
+          uploaded_by?: string | null;
+          created_at?: string;
+          reviewed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "art_versions_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "art_versions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      art_reviews: {
+        Row: {
+          id: string;
+          organization_id: string;
+          order_id: string;
+          version_id: string;
+          decision: string;
+          comment: string | null;
+          pins: Json;
+          reviewer_name: string | null;
+          ip: unknown | null;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          order_id: string;
+          version_id: string;
+          decision: string;
+          comment?: string | null;
+          pins?: Json;
+          reviewer_name?: string | null;
+          ip?: unknown | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          order_id?: string;
+          version_id?: string;
+          decision?: string;
+          comment?: string | null;
+          pins?: Json;
+          reviewer_name?: string | null;
+          ip?: unknown | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "art_reviews_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "art_reviews_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "art_reviews_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "art_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customers: {
         Row: {
           id: string;
@@ -653,6 +1135,7 @@ export type Database = {
           reference: string | null;
           created_by: string | null;
           created_at: string;
+          order_item_id: string | null;
         };
         Insert: {
           id?: never;
@@ -666,6 +1149,7 @@ export type Database = {
           reference?: string | null;
           created_by?: string | null;
           created_at?: string;
+          order_item_id?: string | null;
         };
         Update: {
           id?: never;
@@ -679,6 +1163,7 @@ export type Database = {
           reference?: string | null;
           created_by?: string | null;
           created_at?: string;
+          order_item_id?: string | null;
         };
         Relationships: [
           {
@@ -947,6 +1432,54 @@ export type Database = {
       };
     };
     Functions: {
+      change_order_status: {
+        Args: { p_order: string; p_status: Database["public"]["Enums"]["order_status"]; p_note?: string | null };
+        Returns: undefined;
+      };
+      create_order: {
+        Args: { p_org: string; p_status: Database["public"]["Enums"]["order_status"]; p_fields: Json; p_items: Json };
+        Returns: string;
+      };
+      update_order: {
+        Args: { p_order: string; p_fields: Json; p_items: Json };
+        Returns: undefined;
+      };
+      save_order_items: {
+        Args: { p_order: string; p_items: Json };
+        Returns: undefined;
+      };
+      rate_limit_hit: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number };
+        Returns: boolean;
+      };
+      resolve_art_link: {
+        Args: { p_token: string };
+        Returns: { link_id: string; organization_id: string; order_id: string }[];
+      };
+      register_client_art_file: {
+        Args: {
+          p_token: string;
+          p_path: string;
+          p_file_name: string;
+          p_size: number;
+          p_mime: string;
+          p_note: string | null;
+        };
+        Returns: string;
+      };
+      submit_art_review: {
+        Args: {
+          p_token: string;
+          p_version_id: string;
+          p_decision: string;
+          p_comment: string | null;
+          p_pins: Json;
+          p_reviewer_name: string | null;
+          p_ip: unknown;
+          p_user_agent: string | null;
+        };
+        Returns: undefined;
+      };
       variant_price: {
         Args: { p_variant: string; p_channel: Database["public"]["Enums"]["sales_channel"] };
         Returns: number;
@@ -957,6 +1490,31 @@ export type Database = {
       };
     };
     Enums: {
+      order_status:
+        | "orcamento"
+        | "novo"
+        | "aguardando_arte"
+        | "arte_em_criacao"
+        | "aguardando_aprovacao"
+        | "aprovado"
+        | "em_impressao"
+        | "acabamento"
+        | "expedicao"
+        | "enviado"
+        | "entregue"
+        | "cancelado";
+      order_item_stock: "livre" | "reservado" | "baixado";
+      art_version_status: "pendente" | "aprovada" | "alteracao" | "substituida";
+      order_event_type:
+        | "criado"
+        | "status"
+        | "comentario"
+        | "link_arte"
+        | "arquivo_cliente"
+        | "prova"
+        | "arte_aprovada"
+        | "alteracao_pedida"
+        | "arte_final";
       sales_channel: "balcao" | "shopee" | "magalu" | "tiktok" | "whatsapp";
       person_type: "pf" | "pj";
       fulfillment_mode: "sob_encomenda" | "pronta_entrega";

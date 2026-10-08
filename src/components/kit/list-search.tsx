@@ -17,8 +17,11 @@ export function ListSearch({ placeholder }: { placeholder: string }) {
     const current = searchParams.get("q") ?? "";
     if (value.trim() === current) return;
     const timer = setTimeout(() => {
-      const params = new URLSearchParams();
+      // Mantém os outros filtros; a busca nova volta para a página 1.
+      const params = new URLSearchParams(searchParams);
+      params.delete("pagina");
       if (value.trim()) params.set("q", value.trim());
+      else params.delete("q");
       startTransition(() => router.replace(params.size ? `${pathname}?${params}` : pathname));
     }, 300);
     return () => clearTimeout(timer);

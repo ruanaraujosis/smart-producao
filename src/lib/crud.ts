@@ -19,9 +19,19 @@ export function dbErrorMessage(
   if (error.code === "23505") return messages.unique ?? "Já existe um registro com esses dados.";
   if (error.code === "23503")
     return messages.inUse ?? "Este registro está em uso e não pode ser removido.";
-  // Regras do banco (permissões, escalada) já respondem em português.
-  if (error.code === "42501" || error.code === "P0001") return error.message;
-  if (error.code === "23514") return "Algum campo está com um valor inválido.";
+  // Regras do banco (permissões, escalada, gatilhos) já respondem em português.
+  if (["42501", "P0001", "P0002", "22023"].includes(error.code ?? "")) {
+    // Exceto a recusa genérica de privilégio do Postgres (em inglês).
+    return /permission denied/i.test(error.message)
+      ? "Você não tem permissão para esta ação."
+      : error.message;
+  }
+  if (error.code === "23514") {
+    // Restrição automática (CHECK) vem em inglês; as dos gatilhos já vêm em português.
+    return /violates check constraint/i.test(error.message)
+      ? "Algum campo está com um valor inválido."
+      : error.message;
+  }
   return messages.fallback;
 }
 
