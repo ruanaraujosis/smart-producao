@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <LogoMark className="mx-auto mb-6 size-12" />
+        <LogoMark className="mx-auto mb-6 h-12" />
         {children}
       </div>
     </main>

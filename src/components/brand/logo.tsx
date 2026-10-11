@@ -1,9 +1,9 @@
+import { useId } from "react";
 import { cn } from "cn";
 import { MARK } from "./mark";
 
 /**
- * Símbolo da graphicX. A perna principal usa a cor do texto (currentColor):
- * preta nas telas claras e branca no header e no tema escuro.
+ * Símbolo da graphicX: "GX" em blocos, em gradiente do roxo ao azul-marinho.
  * A geometria fica em ./mark (a mesma dos ícones).
  */
 export function LogoMark({
@@ -13,17 +13,51 @@ export function LogoMark({
   className?: string;
   title?: string;
 }) {
+  const id = useId();
+  const [gx1, gx2] = MARK.gRange;
+  const [xx1, xx2] = MARK.xRange;
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox={MARK.viewBox}
       role={title ? "img" : undefined}
       aria-label={title || undefined}
       aria-hidden={title ? undefined : true}
-      className={cn("size-9 shrink-0", className)}
+      className={cn("h-9 w-auto shrink-0", className)}
     >
-      <path d={MARK.orangeTip} fill={MARK.orange} />
-      <path d={MARK.blueLeg} fill={MARK.blue} />
-      <path d={MARK.mainStroke} fill="currentColor" />
+      <defs>
+        <linearGradient
+          id={`${id}-g`}
+          gradientUnits="userSpaceOnUse"
+          x1={gx1}
+          y1="0"
+          x2={gx2}
+          y2="0"
+        >
+          <stop offset="0" style={{ stopColor: `var(--logo-from, ${MARK.gradient.from})` }} />
+          <stop offset="1" style={{ stopColor: `var(--logo-to, ${MARK.gradient.to})` }} />
+        </linearGradient>
+        <linearGradient
+          id={`${id}-x`}
+          gradientUnits="userSpaceOnUse"
+          x1={xx1}
+          y1="0"
+          x2={xx2}
+          y2="0"
+        >
+          <stop offset="0" style={{ stopColor: `var(--logo-from, ${MARK.gradient.from})` }} />
+          <stop offset="1" style={{ stopColor: `var(--logo-to, ${MARK.gradient.to})` }} />
+        </linearGradient>
+      </defs>
+      <path
+        d={MARK.g}
+        fill="none"
+        stroke={`url(#${id}-g)`}
+        strokeWidth={MARK.gStroke}
+        strokeMiterlimit={2}
+      />
+      {MARK.x.map((d) => (
+        <path key={d} d={d} fill={`url(#${id}-x)`} />
+      ))}
     </svg>
   );
 }
@@ -39,7 +73,14 @@ export function Logo({
   inverse?: boolean;
 }) {
   return (
-    <span className={cn("flex items-center gap-2.5", className)}>
+    <span
+      className={cn(
+        "flex items-center gap-2.5",
+        // Painel escuro fixo (login): gradiente claro, como no tema escuro.
+        inverse && "[--logo-from:#a78bfa] [--logo-to:#5b7cf0]",
+        className,
+      )}
+    >
       <LogoMark />
       {!compact && (
         <span className="flex flex-col leading-none">

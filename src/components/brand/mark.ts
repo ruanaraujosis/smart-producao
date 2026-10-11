@@ -1,20 +1,26 @@
 /**
- * Geometria do símbolo da graphicX (grade 64 × 64), usada pelo componente da
- * logo e pelos ícones (favicon/PWA), para os dois saírem sempre iguais.
- * Um "X" com a perna principal ("/") na cor do texto (preta no claro, branca no
- * escuro), a perna de baixo em azul e a ponta de cima destacada em laranja.
+ * Geometria do símbolo da graphicX — "GX" em blocos (grade 98 × 52), usada
+ * pelo componente da logo e pelos ícones (favicon/PWA), para saírem iguais.
+ * G de cantos chanfrados + o X da marca (ponta separada e cortes retos), cada
+ * letra em gradiente do roxo (esquerda) ao azul-marinho (direita).
  */
 export const MARK = {
+  viewBox: "3 4 98 52",
+  width: 98,
+  height: 52,
   /** Fundo dos ícones do app e do navegador. */
   background: "#ffffff",
-  /** Perna principal nos ícones (sobre o fundo branco). */
-  ink: "#111111",
-  blue: "#1d5fd1",
-  orange: "#f47b13",
-  /** Ponta laranja de cima, à esquerda. */
-  orangeTip: "M10 7 H23 L30 18 L23.5 28 Z",
-  /** Perna azul de baixo; o topo fica escondido sob a perna principal. */
-  blueLeg: "M25 30 L37 30 L53 57 H39 Z",
-  /** Perna principal, na diagonal "/". */
-  mainStroke: "M38 7 H52 L23 57 H9 Z",
+  gradient: { from: "#8b5cf6", to: "#14287a" },
+  /** G: traço central (stroke 11, cantos em esquadria). */
+  g: "M47 12 H17 L11 18 V42 L17 48 H41 L47 42 V31 H32",
+  gStroke: 11,
+  /** Faixa horizontal de cada letra, para o gradiente. */
+  gRange: [5, 53],
+  xRange: [56.5, 98],
+  /** X: ponta de cima, perna de baixo e perna principal (já posicionados). */
+  x: [
+    "M57.4 6.5 H69.62 L76.2 16.84 L70.09 26.24 Z",
+    "M71.5 28.12 L82.78 28.12 L97.82 53.5 H84.66 Z",
+    "M83.72 6.5 H96.88 L69.62 53.5 H56.46 Z",
+  ],
 } as const;

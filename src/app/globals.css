@@ -103,6 +103,9 @@
   --brand-purple: #7c3aed;
   --brand-lime: #a3c13a;
   --brand-header: #ffffff;
+  /* Gradiente da logo GX (no escuro termina num azul mais claro para não sumir no fundo) */
+  --logo-from: #8b5cf6;
+  --logo-to: #14287a;
   --brand-header-foreground: #14287a;
   --brand-header-muted: #52607a;
 
@@ -165,6 +168,8 @@
   --brand-purple: #a78bfa;
   --brand-lime: #b5d34a;
   --brand-header: #0a0a0a;
+  --logo-from: #a78bfa;
+  --logo-to: #5b7cf0;
   --brand-header-foreground: #f5f5f5;
   --brand-header-muted: #a8a8a8;
 
