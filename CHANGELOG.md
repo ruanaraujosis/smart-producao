@@ -4,6 +4,20 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+## [0.4.0] - 2026-10-11
+
+### Fase 4 — Dashboard TV + Financeiro básico
+
+#### Adicionado
+
+- **Financeiro:** visão geral com faturamento de hoje, da semana e do mês contra a **meta mensal** (dia e semana pelos dias úteis), contas em aberto e vencidas e saldo do mês.
+- **Contas a receber** automáticas a partir dos pedidos confirmados (total, taxa e prazo da forma de pagamento), acompanhando total, cancelamento e reabertura; contas avulsas; baixa com data.
+- **Contas a pagar** com categorias editáveis, fornecedor e recorrência mensal (a próxima parcela nasce ao pagar).
+- **Fluxo de caixa** (realizado e previsto), **DRE simplificado** dos últimos 6 meses e **margem por produto** (vendas − insumos − taxas).
+- Custo dos insumos guardado em cada baixa (custo médio do momento).
+- Exportação em **CSV e Excel** de todos os relatórios.
+- **Painel de TV** (`/tv/<link>`): tela cheia e escura, rotação automática entre produção, prazos, artes, faturamento × meta, vendas por canal e estoque crítico; atualiza a cada 30 s. Cada TV tem link próprio só de leitura, revogável, com valores em R$ desligados por padrão.
+
 ## [0.3.0] - 2026-10-08
 
 ### Fase 3 — Pedidos + PCP + Aprovação de Artes

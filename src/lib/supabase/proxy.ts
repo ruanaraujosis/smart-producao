@@ -10,6 +10,8 @@ const PUBLIC_PATHS = [
   "/auth/confirm",
   // Link do cliente para enviar arte e aprovar a prova (token no caminho).
   "/a",
+  // Painel da TV (token de dispositivo no caminho, só leitura).
+  "/tv",
   "/manifest.webmanifest",
   "/icon",
   "/apple-icon",

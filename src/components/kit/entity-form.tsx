@@ -35,7 +35,7 @@ export type FieldOption = { value: string; label: string };
 export type FieldConfig = {
   name: string;
   label: string;
-  type?: "text" | "email" | "tel" | "number" | "textarea" | "select" | "switch" | "cep";
+  type?: "text" | "email" | "tel" | "number" | "date" | "textarea" | "select" | "switch" | "cep";
   options?: readonly FieldOption[];
   placeholder?: string;
   hint?: string;

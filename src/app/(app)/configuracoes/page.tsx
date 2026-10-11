@@ -50,12 +50,12 @@ const SECTIONS: {
     comingSoon: true,
   },
   {
+    href: "/configuracoes/tv",
     title: "Dispositivos de TV",
-    description: "Tokens de acesso somente leitura para o painel da produção.",
+    description: "Painel da produção em tela cheia, com link só de leitura para cada TV.",
     icon: Tv,
     tone: "warning",
-    permission: "configuracoes.ver",
-    comingSoon: true,
+    permission: "configuracoes.gerenciar",
   },
 ];
 
