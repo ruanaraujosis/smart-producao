@@ -4,13 +4,15 @@
  *
  *   npm run env:verificar             → preenchimento e formato de cada variável
  *   npm run env:verificar -- --conexao → também testa as chaves contra o Supabase
+ *   npm run env:verificar -- --producao → confere o arquivo de produção (.env.producao.local)
  *
  * Mostra só: ✔/✖/⚠, o tipo da chave e o tamanho. Valores públicos (URLs) aparecem inteiros.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const FILE = resolve(process.cwd(), ".env" + ".local");
+const PRODUCTION = process.argv.includes("--producao");
+const FILE = resolve(process.cwd(), ".env" + (PRODUCTION ? ".producao.local" : ".local"));
 
 /** Regras por variável. `public: true` = pode ser exibida (já vai para o navegador). */
 const RULES = {
