@@ -24,7 +24,7 @@ test.describe("login", () => {
     const response = await request.get("/manifest.webmanifest");
     expect(response.ok()).toBeTruthy();
     const manifest = await response.json();
-    expect(manifest.name).toBe("graphicX");
+    expect(manifest.name).toBe("GraphicX");
     expect(manifest.icons.length).toBeGreaterThan(0);
   });
 });
