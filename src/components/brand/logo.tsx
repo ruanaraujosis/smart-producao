@@ -1,36 +1,63 @@
 import { useId } from "react";
 import { cn } from "cn";
+import { MARK } from "./mark";
 
 /**
- * Símbolo da graphicX: quadrado arredondado em degradê verde-azulado → azul-céu
- * com um "X" formado por um traço branco e um laranja.
- * Versão vetorial provisória — substituir pelo arquivo oficial da marca quando existir.
+ * Símbolo da GraphicX: "GX" em blocos, em gradiente do roxo ao azul-marinho.
+ * A geometria fica em ./mark (a mesma dos ícones).
  */
 export function LogoMark({
   className,
-  title = "graphicX",
+  title = "GraphicX",
 }: {
   className?: string;
   title?: string;
 }) {
-  const gradientId = useId();
+  const id = useId();
+  const [gx1, gx2] = MARK.gRange;
+  const [xx1, xx2] = MARK.xRange;
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox={MARK.viewBox}
       role={title ? "img" : undefined}
       aria-label={title || undefined}
       aria-hidden={title ? undefined : true}
-      className={cn("size-9 shrink-0", className)}
+      className={cn("h-9 w-auto shrink-0", className)}
     >
       <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#0e7c86" />
-          <stop offset="100%" stopColor="#42a5f5" />
+        <linearGradient
+          id={`${id}-g`}
+          gradientUnits="userSpaceOnUse"
+          x1={gx1}
+          y1="0"
+          x2={gx2}
+          y2="0"
+        >
+          <stop offset="0" style={{ stopColor: `var(--logo-from, ${MARK.gradient.from})` }} />
+          <stop offset="1" style={{ stopColor: `var(--logo-to, ${MARK.gradient.to})` }} />
+        </linearGradient>
+        <linearGradient
+          id={`${id}-x`}
+          gradientUnits="userSpaceOnUse"
+          x1={xx1}
+          y1="0"
+          x2={xx2}
+          y2="0"
+        >
+          <stop offset="0" style={{ stopColor: `var(--logo-from, ${MARK.gradient.from})` }} />
+          <stop offset="1" style={{ stopColor: `var(--logo-to, ${MARK.gradient.to})` }} />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="16" fill={`url(#${gradientId})`} />
-      <path d="M20 20 44 44" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
-      <path d="M44 20 20 44" stroke="#f47b13" strokeWidth="8" strokeLinecap="round" />
+      <path
+        d={MARK.g}
+        fill="none"
+        stroke={`url(#${id}-g)`}
+        strokeWidth={MARK.gStroke}
+        strokeMiterlimit={2}
+      />
+      {MARK.x.map((d) => (
+        <path key={d} d={d} fill={`url(#${id}-x)`} />
+      ))}
     </svg>
   );
 }
@@ -46,12 +73,26 @@ export function Logo({
   inverse?: boolean;
 }) {
   return (
-    <span className={cn("flex items-center gap-2.5", className)}>
+    <span
+      className={cn(
+        "flex items-center gap-2.5",
+        // Painel escuro fixo (login): gradiente claro, como no tema escuro.
+        inverse && "[--logo-from:#a78bfa] [--logo-to:#5b7cf0]",
+        className,
+      )}
+    >
       <LogoMark />
       {!compact && (
         <span className="flex flex-col leading-none">
-          <span className="font-heading text-xl font-bold tracking-tight">
-            graphic<span className={inverse ? "text-[#f47b13]" : "text-brand-orange"}>X</span>
+          {/* G roxo e X azul-marinho (as mesmas cores do símbolo); o meio na cor do texto. */}
+          <span
+            className={cn(
+              "font-heading text-xl font-bold tracking-tight",
+              inverse ? "text-white" : "text-foreground",
+            )}
+          >
+            <span style={{ color: "var(--logo-from)" }}>G</span>raphic
+            <span style={{ color: "var(--logo-to)" }}>X</span>
           </span>
           <span
             className={cn(

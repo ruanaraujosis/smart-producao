@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "graphicX",
-    short_name: "graphicX",
+    name: "GraphicX",
+    short_name: "GraphicX",
     description: "Gestão completa para gráficas: pedidos, artes, produção, estoque e expedição.",
     lang: "pt-BR",
     start_url: "/inicio",

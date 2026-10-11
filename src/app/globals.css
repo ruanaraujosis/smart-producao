@@ -69,10 +69,11 @@
 }
 
 /*
- * Paleta da graphicX (plataforma SaaS para gráficas).
- * Base: laranja de ação, azul-marinho, verde-azulado, azul-céu, roxo e verde-limão.
- * Pares texto/fundo conferidos para contraste AA. O laranja vivo (#f47b13) não tem
- * contraste com texto branco: nos botões do tema claro usamos o laranja fechado (#c84f08).
+ * Paleta da GraphicX (plataforma SaaS para gráficas).
+ * Cor de ação: roxo no tema claro e azul-claro no tema escuro (a mesma família da logo GX).
+ * Base: azul-marinho, verde-azulado, azul-céu, roxo, verde-limão e laranja (alertas).
+ * Pares texto/fundo conferidos para contraste AA: roxo #7c3aed com texto branco (5,7:1);
+ * azul-claro #42a5f5 com texto escuro (> 7:1).
  */
 :root {
   --background: #f4f7fb;
@@ -81,14 +82,14 @@
   --card-foreground: #13214f;
   --popover: #ffffff;
   --popover-foreground: #13214f;
-  --primary: #c84f08;
+  --primary: #7c3aed;
   --primary-foreground: #ffffff;
   --secondary: #e3f3f5;
   --secondary-foreground: #0b5f68;
   --muted: #edf1f7;
   --muted-foreground: #52607a;
-  --accent: #fff0e3;
-  --accent-foreground: #9a3c06;
+  --accent: #f1eaff;
+  --accent-foreground: #5b21b6;
   --destructive: #c0262d;
   --border: #dde4ee;
   --input: #7f8ea4; /* borda de campos: 3:1 sobre branco e sobre o fundo (AA 1.4.11) */
@@ -103,6 +104,9 @@
   --brand-purple: #7c3aed;
   --brand-lime: #a3c13a;
   --brand-header: #ffffff;
+  /* Gradiente da logo GX (no escuro termina num azul mais claro para não sumir no fundo) */
+  --logo-from: #8b5cf6;
+  --logo-to: #14287a;
   --brand-header-foreground: #14287a;
   --brand-header-muted: #52607a;
 
@@ -121,18 +125,18 @@
   --channel-whatsapp: #15803d;
   --channel-balcao: #0e7c86;
 
-  --chart-1: #f47b13;
+  --chart-1: #7c3aed;
   --chart-2: #0e7c86;
   --chart-3: #42a5f5;
-  --chart-4: #7c3aed;
+  --chart-4: #f47b13;
   --chart-5: #a3c13a;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #13214f;
-  --sidebar-primary: #c84f08;
+  --sidebar-primary: #7c3aed;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fff0e3;
-  --sidebar-accent-foreground: #9a3c06;
+  --sidebar-accent: #f1eaff;
+  --sidebar-accent-foreground: #5b21b6;
   --sidebar-border: #dde4ee;
   --sidebar-ring: #0e7c86;
 }
@@ -145,14 +149,14 @@
   --card-foreground: #f5f5f5;
   --popover: #161616;
   --popover-foreground: #f5f5f5;
-  --primary: #f58a2e;
-  --primary-foreground: #1a0d02;
+  --primary: #42a5f5;
+  --primary-foreground: #03111f;
   --secondary: #0b3238;
   --secondary-foreground: #a5e8ee;
   --muted: #1c1c1c;
   --muted-foreground: #a8a8a8;
-  --accent: #2b1d10;
-  --accent-foreground: #ffbf85;
+  --accent: #0b2236;
+  --accent-foreground: #9fd3ff;
   --destructive: #f87171;
   --border: #2a2a2a;
   --input: #6b6b6b;
@@ -165,6 +169,8 @@
   --brand-purple: #a78bfa;
   --brand-lime: #b5d34a;
   --brand-header: #0a0a0a;
+  --logo-from: #a78bfa;
+  --logo-to: #5b7cf0;
   --brand-header-foreground: #f5f5f5;
   --brand-header-muted: #a8a8a8;
 
@@ -181,18 +187,18 @@
   --channel-whatsapp: #4ade80;
   --channel-balcao: #38c5d1;
 
-  --chart-1: #f58a2e;
+  --chart-1: #42a5f5;
   --chart-2: #38c5d1;
-  --chart-3: #60b4f7;
+  --chart-3: #f58a2e;
   --chart-4: #a78bfa;
   --chart-5: #b5d34a;
 
   --sidebar: #0a0a0a;
   --sidebar-foreground: #f5f5f5;
-  --sidebar-primary: #f58a2e;
-  --sidebar-primary-foreground: #1a0d02;
-  --sidebar-accent: #2b1d10;
-  --sidebar-accent-foreground: #ffbf85;
+  --sidebar-primary: #42a5f5;
+  --sidebar-primary-foreground: #03111f;
+  --sidebar-accent: #0b2236;
+  --sidebar-accent-foreground: #9fd3ff;
   --sidebar-border: #2a2a2a;
   --sidebar-ring: #38c5d1;
 }

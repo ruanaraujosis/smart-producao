@@ -13,14 +13,14 @@ export default function LoginPage() {
         <Logo inverse className="relative z-10 text-white" />
         <div className="relative z-10 max-w-md">
           <p className="font-heading text-4xl leading-tight font-bold">
-            A gestão completa da sua <span className="text-[#f47b13]">gráfica</span>.
+            A gestão completa da sua <span className="text-[#7cc4fa]">gráfica</span>.
           </p>
           <p className="mt-4 text-white/80">
             Pedidos de todos os canais, aprovação de artes, produção, estoque e expedição em um só
             lugar.
           </p>
         </div>
-        <p className="relative z-10 text-sm text-white/80">graphicX · plataforma para gráficas</p>
+        <p className="relative z-10 text-sm text-white/80">GraphicX · plataforma para gráficas</p>
         {/* Onda azul-céu, como no site de referência */}
         <svg
           aria-hidden
@@ -37,7 +37,7 @@ export default function LoginPage() {
       <main className="flex flex-col items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
-            <LogoMark className="size-14 lg:hidden" />
+            <LogoMark className="h-14 lg:hidden" />
             <div>
               <h1 className="font-heading text-2xl font-bold tracking-tight">Entrar no sistema</h1>
               <p className="mt-1 text-sm text-muted-foreground">Entre com seu e-mail ou usuário.</p>

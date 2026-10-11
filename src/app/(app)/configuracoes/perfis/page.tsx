@@ -112,7 +112,7 @@ async function RolesContent() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="flex items-center gap-2 font-heading text-base font-semibold">
-                  {role.isAdmin && <Crown className="size-4 text-brand-orange" aria-hidden />}
+                  {role.isAdmin && <Crown className="size-4 text-primary" aria-hidden />}
                   {role.view.name}
                 </p>
                 {role.view.description && (

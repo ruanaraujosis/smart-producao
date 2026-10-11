@@ -30,7 +30,7 @@ export default function ArtePublicaPage({ params }: PageProps<"/a/[token]">) {
         <ArtePublica params={params} />
       </Suspense>
       <p className="mt-auto pt-6 text-center text-xs text-muted-foreground">
-        Link seguro gerado pela gráfica · graphicX
+        Link seguro gerado pela gráfica · GraphicX
       </p>
     </main>
   );
