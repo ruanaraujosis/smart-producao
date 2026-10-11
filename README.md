@@ -1,4 +1,4 @@
-# graphicX
+# GraphicX
 
 Plataforma SaaS de gestão para gráficas: pedidos, aprovação de artes, produção (PCP), estoque, financeiro, NF-e, dashboard para TV e integração com marketplaces (Shopee, Magalu, TikTok Shop). Multi-empresa: cada gráfica cliente (ex.: Smart Gráfica) tem seus dados isolados.
 
@@ -140,6 +140,23 @@ O CI (`.github/workflows/ci.yml`) roda formatação, lint, tipos, testes unitár
 1. Importe o repositório na Vercel (_Add New → Project_).
 2. Em _Environment Variables_, cadastre `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`, com valores diferentes para _Production_ (`main`) e _Preview_ (`develop` e PRs).
 3. No Supabase, em _Authentication → URL Configuration_, adicione a URL da Vercel em _Site URL_ e _Redirect URLs_.
+
+### Ambientes
+
+| Ambiente      | Branch    | Endereço                                  | Banco                       |
+| ------------- | --------- | ----------------------------------------- | --------------------------- |
+| Produção      | `main`    | https://grapphicx.vercel.app              | Supabase de produção        |
+| Homologação   | `develop` | https://graphicx-dev.vercel.app           | Supabase de desenvolvimento |
+| Preview de PR | `feat/*`… | `graphicx-git-<branch>-acpark.vercel.app` | Supabase de desenvolvimento |
+
+### Colocando a produção no ar (uma vez)
+
+1. **Supabase:** crie um projeto novo só para produção (região São Paulo) e guarde a senha do banco num gerenciador de senhas. Em _Authentication → URL Configuration_: _Site URL_ `https://grapphicx.vercel.app` e _Redirect URLs_ `https://grapphicx.vercel.app/**`.
+2. **GitHub → Settings → Environments → `producao`:** cadastre os secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` (o código do projeto de produção) e `SUPABASE_DB_PASSWORD`. O workflow `migrations.yml` aplica as migrations na produção a cada merge na `main`.
+3. **Vercel → Settings → Environment Variables:** valores de **Production** apontando para o projeto de produção (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`) e `NEXT_PUBLIC_APP_URL=https://grapphicx.vercel.app`. _Preview_ continua com o banco de desenvolvimento.
+4. **Vercel → Settings → Domains:** `grapphicx.vercel.app` em _Production_ (branch `main`) e `graphicx-dev.vercel.app` em _Preview_ na branch `develop`.
+5. **Release:** PR de `develop` para `main`. Com o CI verde, o merge publica a produção e aplica as migrations.
+6. **SuperAdmin de produção:** crie `.env.producao.local` (ignorado pelo Git) com as variáveis do projeto de produção e as de `ORG_*`/`ADMIN_*`, confira com `npm run env:verificar -- --producao` e rode `npm run plataforma:iniciar:producao`. Depois apague `ADMIN_PASSWORD` desse arquivo.
 
 ## Variáveis de ambiente e segredos
 

@@ -17,6 +17,7 @@
     "db:push": "supabase db push",
     "db:new": "supabase migration new",
     "plataforma:iniciar": "tsx --env-file=.env.local scripts/iniciar-plataforma.ts",
+    "plataforma:iniciar:producao": "tsx --env-file=.env.producao.local scripts/iniciar-plataforma.ts",
     "env:verificar": "node scripts/verificar-env.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "segredos:verificar": "node scripts/verificar-segredos.mjs",
