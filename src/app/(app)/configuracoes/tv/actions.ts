@@ -52,15 +52,13 @@ export async function saveTvRotation(input: unknown): Promise<ActionResult> {
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Valor inválido." };
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("organization_settings")
-    .upsert(
-      {
-        organization_id: membership.organizationId,
-        tv_rotation_seconds: parsed.data.tv_rotation_seconds,
-      },
-      { onConflict: "organization_id" },
-    );
+  const { error } = await supabase.from("organization_settings").upsert(
+    {
+      organization_id: membership.organizationId,
+      tv_rotation_seconds: parsed.data.tv_rotation_seconds,
+    },
+    { onConflict: "organization_id" },
+  );
   if (error)
     return { ok: false, error: dbErrorMessage(error, { fallback: "Não foi possível salvar." }) };
   revalidatePath(PAGE);
