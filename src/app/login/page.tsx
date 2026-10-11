@@ -13,7 +13,7 @@ export default function LoginPage() {
         <Logo inverse className="relative z-10 text-white" />
         <div className="relative z-10 max-w-md">
           <p className="font-heading text-4xl leading-tight font-bold">
-            A gestão completa da sua <span className="text-[#f47b13]">gráfica</span>.
+            A gestão completa da sua <span className="text-[#7cc4fa]">gráfica</span>.
           </p>
           <p className="mt-4 text-white/80">
             Pedidos de todos os canais, aprovação de artes, produção, estoque e expedição em um só
