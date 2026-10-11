@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "graphicX", template: "%s · graphicX" },
+  title: { default: "GraphicX", template: "%s · GraphicX" },
   description:
-    "graphicX: gestão completa para gráficas — pedidos, artes, produção, estoque, expedição e marketplaces.",
-  applicationName: "graphicX",
-  appleWebApp: { capable: true, title: "graphicX", statusBarStyle: "black-translucent" },
+    "GraphicX: gestão completa para gráficas — pedidos, artes, produção, estoque, expedição e marketplaces.",
+  applicationName: "GraphicX",
+  appleWebApp: { capable: true, title: "GraphicX", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 

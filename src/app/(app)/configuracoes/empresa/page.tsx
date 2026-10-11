@@ -49,7 +49,7 @@ async function Empresa() {
             {org.slug}
             <Lock className="size-3.5 text-muted-foreground" aria-hidden />
           </dd>
-          <p className="text-xs text-muted-foreground">Só o suporte da graphicX altera o código.</p>
+          <p className="text-xs text-muted-foreground">Só o suporte da GraphicX altera o código.</p>
         </div>
       </dl>
     </>

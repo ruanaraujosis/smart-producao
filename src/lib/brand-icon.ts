@@ -1,6 +1,6 @@
 import { MARK } from "@/components/brand/mark";
 
-/** SVG do símbolo da graphicX (GX) num quadrado branco: favicon e ícones do PWA. */
+/** SVG do símbolo da GraphicX (GX) num quadrado branco: favicon e ícones do PWA. */
 export function brandIconSvg({ padded }: { padded: boolean }) {
   // Ícone "maskable": o Android recorta as bordas, então o GX fica menor.
   const usable = padded ? 40 : 54;

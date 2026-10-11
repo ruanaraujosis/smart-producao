@@ -3,12 +3,12 @@ import { cn } from "cn";
 import { MARK } from "./mark";
 
 /**
- * Símbolo da graphicX: "GX" em blocos, em gradiente do roxo ao azul-marinho.
+ * Símbolo da GraphicX: "GX" em blocos, em gradiente do roxo ao azul-marinho.
  * A geometria fica em ./mark (a mesma dos ícones).
  */
 export function LogoMark({
   className,
-  title = "graphicX",
+  title = "GraphicX",
 }: {
   className?: string;
   title?: string;
@@ -84,8 +84,15 @@ export function Logo({
       <LogoMark />
       {!compact && (
         <span className="flex flex-col leading-none">
-          <span className="font-heading text-xl font-bold tracking-tight">
-            graphic<span className={inverse ? "text-[#f47b13]" : "text-brand-orange"}>X</span>
+          {/* G roxo e X azul-marinho (as mesmas cores do símbolo); o meio na cor do texto. */}
+          <span
+            className={cn(
+              "font-heading text-xl font-bold tracking-tight",
+              inverse ? "text-white" : "text-foreground",
+            )}
+          >
+            <span style={{ color: "var(--logo-from)" }}>G</span>raphic
+            <span style={{ color: "var(--logo-to)" }}>X</span>
           </span>
           <span
             className={cn(

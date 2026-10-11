@@ -20,7 +20,7 @@ export default function LoginPage() {
             lugar.
           </p>
         </div>
-        <p className="relative z-10 text-sm text-white/80">graphicX · plataforma para gráficas</p>
+        <p className="relative z-10 text-sm text-white/80">GraphicX · plataforma para gráficas</p>
         {/* Onda azul-céu, como no site de referência */}
         <svg
           aria-hidden

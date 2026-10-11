@@ -20,7 +20,7 @@ export default function PlataformaPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Plataforma"
-        description="Gráficas clientes da graphicX. Você vê cadastros e números gerais, não os pedidos delas."
+        description="Gráficas clientes da GraphicX. Você vê cadastros e números gerais, não os pedidos delas."
         actions={<CreateOrganizationDialog />}
       />
       <Suspense

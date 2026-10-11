@@ -32,7 +32,7 @@ async function Mfa({ searchParams }: { searchParams: PageProps<"/mfa">["searchPa
     return (
       <AuthCard
         title="Verificação em duas etapas"
-        description="Abra o app autenticador no celular e digite o código de 6 dígitos da graphicX."
+        description="Abra o app autenticador no celular e digite o código de 6 dígitos da GraphicX."
       >
         <MfaVerify factorId={factor.id} next={next} />
       </AuthCard>

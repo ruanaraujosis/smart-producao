@@ -5,7 +5,7 @@ const ROADMAP = [
   {
     phase: 1,
     title: "Fundação",
-    detail: "Multi-empresa, perfis configuráveis, MFA, marca graphicX, tema claro/escuro",
+    detail: "Multi-empresa, perfis configuráveis, MFA, marca GraphicX, tema claro/escuro",
   },
   {
     phase: 2,
