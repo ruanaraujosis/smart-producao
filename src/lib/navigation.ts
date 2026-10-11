@@ -76,7 +76,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: Wallet,
     scope: "org",
     permission: ["financeiro.ver", "nfe.ver", "relatorios.ver"],
-    comingSoon: true,
   },
   {
     href: "/configuracoes",

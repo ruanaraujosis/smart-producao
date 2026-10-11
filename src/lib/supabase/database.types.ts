@@ -7,6 +7,272 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      tv_devices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          last_seen_at: string | null
+          name: string
+          organization_id: string
+          revoked_at: string | null
+          show_financials: boolean
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_seen_at?: string | null
+          name: string
+          organization_id: string
+          revoked_at?: string | null
+          show_financials?: boolean
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_seen_at?: string | null
+          name?: string
+          organization_id?: string
+          revoked_at?: string | null
+          show_financials?: boolean
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_settings: {
+        Row: {
+          monthly_goal: number | null
+          organization_id: string
+          tv_rotation_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          monthly_goal?: number | null
+          organization_id: string
+          tv_rotation_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          monthly_goal?: number | null
+          organization_id?: string
+          tv_rotation_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payables: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          organization_id: string
+          paid_at: string | null
+          recurrence: string
+          series_id: string | null
+          status: string
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          paid_at?: string | null
+          recurrence?: string
+          series_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          paid_at?: string | null
+          recurrence?: string
+          series_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payables_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payables_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receivables: {
+        Row: {
+          channel: Database["public"]["Enums"]["sales_channel"] | null
+          created_at: string
+          created_by: string | null
+          customer_name: string | null
+          description: string
+          due_date: string
+          fee: number
+          gross: number
+          id: string
+          net: number | null
+          notes: string | null
+          order_id: string | null
+          organization_id: string
+          payment_method_id: string | null
+          received_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: Database["public"]["Enums"]["sales_channel"] | null
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string | null
+          description: string
+          due_date: string
+          fee?: number
+          gross: number
+          id?: string
+          net?: number | null
+          notes?: string | null
+          order_id?: string | null
+          organization_id: string
+          payment_method_id?: string | null
+          received_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["sales_channel"] | null
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string | null
+          description?: string
+          due_date?: string
+          fee?: number
+          gross?: number
+          id?: string
+          net?: number | null
+          notes?: string | null
+          order_id?: string | null
+          organization_id?: string
+          payment_method_id?: string | null
+          received_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receivables_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_counters: {
         Row: {
           organization_id: string;
@@ -32,6 +298,7 @@ export type Database = {
       };
       orders: {
         Row: {
+          confirmed_at: string | null;
           id: string;
           organization_id: string;
           number: number;
@@ -60,6 +327,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          confirmed_at?: string | null;
           id?: string;
           organization_id: string;
           number?: number;
@@ -88,6 +356,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          confirmed_at?: string | null;
           id?: string;
           organization_id?: string;
           number?: number;
@@ -1124,6 +1393,7 @@ export type Database = {
       };
       stock_movements: {
         Row: {
+          cost_at: number | null;
           id: number;
           organization_id: string;
           material_id: string | null;
@@ -1138,6 +1408,7 @@ export type Database = {
           order_item_id: string | null;
         };
         Insert: {
+          cost_at?: number | null;
           id?: never;
           organization_id: string;
           material_id?: string | null;
@@ -1152,6 +1423,7 @@ export type Database = {
           order_item_id?: string | null;
         };
         Update: {
+          cost_at?: number | null;
           id?: never;
           organization_id?: string;
           material_id?: string | null;
@@ -1435,6 +1707,45 @@ export type Database = {
       };
     };
     Functions: {
+      tv_snapshot: {
+        Args: { p_token: string }
+        Returns: Json
+      }
+      finance_product_margin: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          fees: number
+          margin: number
+          material_cost: number
+          product_name: string
+          quantity: number
+          revenue: number
+          sku: string
+          variant_id: string
+          variant_name: string
+        }[]
+      }
+      finance_cash_flow: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          day: string
+          paid: number
+          received: number
+          to_pay: number
+          to_receive: number
+        }[]
+      }
+      finance_dre: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          expenses: number
+          fees: number
+          gross_revenue: number
+          material_cost: number
+          month: string
+          result: number
+        }[]
+      }
       change_order_status: {
         Args: { p_order: string; p_status: Database["public"]["Enums"]["order_status"]; p_note?: string | null };
         Returns: undefined;
