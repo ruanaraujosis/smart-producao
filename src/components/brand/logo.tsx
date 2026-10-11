@@ -1,10 +1,10 @@
-import { useId } from "react";
 import { cn } from "cn";
+import { MARK } from "./mark";
 
 /**
- * Símbolo da graphicX: quadrado arredondado em degradê verde-azulado → azul-céu
- * com um "X" formado por um traço branco e um laranja.
- * Versão vetorial provisória — substituir pelo arquivo oficial da marca quando existir.
+ * Símbolo da graphicX. A perna principal usa a cor do texto (currentColor):
+ * preta nas telas claras e branca no header e no tema escuro.
+ * A geometria fica em ./mark (a mesma dos ícones).
  */
 export function LogoMark({
   className,
@@ -13,7 +13,6 @@ export function LogoMark({
   className?: string;
   title?: string;
 }) {
-  const gradientId = useId();
   return (
     <svg
       viewBox="0 0 64 64"
@@ -22,15 +21,9 @@ export function LogoMark({
       aria-hidden={title ? undefined : true}
       className={cn("size-9 shrink-0", className)}
     >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#0e7c86" />
-          <stop offset="100%" stopColor="#42a5f5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="16" fill={`url(#${gradientId})`} />
-      <path d="M20 20 44 44" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
-      <path d="M44 20 20 44" stroke="#f47b13" strokeWidth="8" strokeLinecap="round" />
+      <path d={MARK.orangeTip} fill={MARK.orange} />
+      <path d={MARK.blueLeg} fill={MARK.blue} />
+      <path d={MARK.mainStroke} fill="currentColor" />
     </svg>
   );
 }
