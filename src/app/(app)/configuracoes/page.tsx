@@ -42,12 +42,13 @@ const SECTIONS: {
     permission: "equipe.ver",
   },
   {
+    href: "/configuracoes/integracoes",
     title: "Integrações",
-    description: "Lojas da Shopee, Magalu e TikTok Shop, e saúde das sincronizações.",
+    description:
+      "Conecte as lojas da Shopee (Magalu e TikTok Shop em breve) e acompanhe as sincronizações.",
     icon: PlugZap,
     tone: "teal",
     permission: "configuracoes.ver",
-    comingSoon: true,
   },
   {
     href: "/configuracoes/tv",

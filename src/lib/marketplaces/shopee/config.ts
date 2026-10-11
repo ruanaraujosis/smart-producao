@@ -31,6 +31,7 @@ export function getShopeeConfig(): ShopeeConfig | null {
 
 export function requireShopeeConfig(): ShopeeConfig {
   const config = getShopeeConfig();
-  if (!config) throw new Error("Integração com a Shopee ainda não configurada (credenciais do app).");
+  if (!config)
+    throw new Error("Integração com a Shopee ainda não configurada (credenciais do app).");
   return config;
 }

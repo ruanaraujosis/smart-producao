@@ -12,6 +12,9 @@ const PUBLIC_PATHS = [
   "/a",
   // Painel da TV (token de dispositivo no caminho, só leitura).
   "/tv",
+  // Avisos dos marketplaces (assinatura conferida na rota) e o processador da fila (segredo).
+  "/api/marketplaces/shopee/webhook",
+  "/api/marketplaces/worker",
   "/manifest.webmanifest",
   "/icon",
   "/apple-icon",

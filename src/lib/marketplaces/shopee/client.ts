@@ -103,7 +103,12 @@ export async function shopeeRequest<T = Envelope>(input: {
     const err =
       e instanceof ShopeeError
         ? e
-        : new ShopeeError(e instanceof Error ? e.message : "Falha de rede.", "network", status, null);
+        : new ShopeeError(
+            e instanceof Error ? e.message : "Falha de rede.",
+            "network",
+            status,
+            null,
+          );
     input.onLog?.({
       endpoint: path,
       ok: false,
