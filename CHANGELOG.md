@@ -4,6 +4,8 @@ Todas as mudanças relevantes deste projeto. Formato baseado em [Keep a Changelo
 
 ## [Não lançado]
 
+## [0.4.0] - 2026-10-11
+
 ### Fase 4 — Dashboard TV + Financeiro básico
 
 #### Adicionado
